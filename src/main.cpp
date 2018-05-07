@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 #include <QApplication>
 
-#include <GL/freeglut.h>
+
+#include "freeglut/GL/freeglut.h"
 
 
 int main(int argc, char *argv[])

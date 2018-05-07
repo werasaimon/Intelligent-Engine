@@ -1,7 +1,7 @@
 #include "SceneCollideShape.h"
 
 #include <Qt>
-#include <GL/freeglut.h>
+#include "freeglut/GL/freeglut.h"
 
 #include <iostream>
 using namespace std;

@@ -3,7 +3,7 @@
 
 
 #include <Qt>
-#include "freeglut/GL/freeglut.h"
+#include <GL/gl.h>
 
 namespace
 {

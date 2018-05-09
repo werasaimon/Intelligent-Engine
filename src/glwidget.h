@@ -51,9 +51,6 @@
 #ifndef MAINWIDGET_H
 #define MAINWIDGET_H
 
-//#include <GL/glew.h>
-//#include <GL/glu.h>
-//#include <GL/freeglut.h>
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>

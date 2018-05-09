@@ -54,7 +54,6 @@
 //#include <GL/glew.h>
 //#endif
 
-#include "glwidget.h"
 
 #include <QMouseEvent>
 #include <math.h>
@@ -64,7 +63,7 @@
 
 #include <QMenu>
 
-
+#include "glwidget.h"
 #include "IEngine/iMath/IMaths.h"
 
 float mouse_x = 0;

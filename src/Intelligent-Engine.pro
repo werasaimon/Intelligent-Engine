@@ -93,7 +93,6 @@ SOURCES += main.cpp\
     IEngine/iPhysics/dynamics/joint/ISliderJoint.cpp \
     IEngine/iPhysics/dynamics/material/IMaterial.cpp \
     IEngine/iPhysics/dynamics/ICollisionWorld.cpp \
-    IEngine/iPhysics/dynamics/IContactManager.cpp \
     IEngine/iPhysics/dynamics/IDynamicsWorld.cpp \
     IEngine/iPhysics/dynamics/IIsland.cpp \
     IEngine/iPhysics/dynamics/IOverlappingPair.cpp \
@@ -108,6 +107,7 @@ SOURCES += main.cpp\
     UNIT_SCENE/SceneCollideShape.cpp \
     UNIT_SCENE/SceneDynamicBody.cpp \
     glwidget.cpp \
+    IEngine/iPhysics/dynamics/contacts/IContactManager.cpp
 
 
 
@@ -163,7 +163,6 @@ HEADERS  += mainwindow.h \
     IEngine/iPhysics/dynamics/joint/ISliderJoint.h \
     IEngine/iPhysics/dynamics/material/IMaterial.h \
     IEngine/iPhysics/dynamics/ICollisionWorld.h \
-    IEngine/iPhysics/dynamics/IContactManager.h \
     IEngine/iPhysics/dynamics/IDynamicsWorld.h \
     IEngine/iPhysics/dynamics/IIsland.h \
     IEngine/iPhysics/dynamics/IOverlappingPair.h \
@@ -183,6 +182,7 @@ HEADERS  += mainwindow.h \
     UNIT_SCENE/SceneDynamicBody.h \
     glwidget.h \
     IEngine/IEngine.h \
+    IEngine/iPhysics/dynamics/contacts/IContactManager.h
 
 
 FORMS    += mainwindow.ui

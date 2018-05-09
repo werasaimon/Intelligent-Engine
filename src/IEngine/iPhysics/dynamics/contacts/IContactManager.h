@@ -5,11 +5,11 @@
 #include <map>
 #include <set>
 
-#include "contacts/IContactManifold.h"
-#include "contacts/IContactManifoldSet.h"
-#include "IOverlappingPair.h"
-#include "../collision/broad_phase/IBroadPhase.h"
-#include "../collision/contacts/IGenerationContactPoints.h"
+#include "IContactManifold.h"
+#include "IContactManifoldSet.h"
+#include "../IOverlappingPair.h"
+#include "../../collision/broad_phase/IBroadPhase.h"
+#include "../../collision/contacts/IGenerationContactPoints.h"
 
 //// Declarations
 //class IBroadPhase;

@@ -1,6 +1,6 @@
 #include "IContactManager.h"
-#include "../collision/broad_phase/IBroadPhase.h"
-#include "../collision/narrow_phase/ICollisionAlgorithmGjkEpa.h"
+#include "../../collision/broad_phase/IBroadPhase.h"
+#include "../../collision/narrow_phase/ICollisionAlgorithmGjkEpa.h"
 
 
 //#include <iostream>

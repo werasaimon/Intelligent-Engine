@@ -7,7 +7,7 @@
 #include <list>
 #include <algorithm>
 
-#include "IContactManager.h"
+#include "contacts/IContactManager.h"
 #include "../body/ICollisionBody.h"
 
 namespace IPhysics

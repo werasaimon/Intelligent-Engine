@@ -3,7 +3,7 @@
 #include "../collision/IProxyShape.h"
 #include "../collision/IRaycastInfo.h"
 #include "../collision/IAABB.h"
-#include "../dynamics/IContactManager.h"
+#include "../dynamics/contacts/IContactManager.h"
 
 
 namespace IPhysics

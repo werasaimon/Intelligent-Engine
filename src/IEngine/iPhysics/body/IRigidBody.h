@@ -4,7 +4,7 @@
 
 #include "ICollisionBody.h"
 #include "../dynamics/material/IMaterial.h"
-#include "../dynamics/IContactManager.h"
+#include "../dynamics/contacts/IContactManager.h"
 #include "../common/memory/IList.h"
 
 

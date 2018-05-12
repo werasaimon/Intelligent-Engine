@@ -1,7 +1,7 @@
 #ifndef IMATEMATICAL_H
 #define IMATEMATICAL_H
 
-#include "../../iMath/IMaths.h"
+#include "../../IMath/IMaths.h"
 
 namespace IGeometry
 {

@@ -3,8 +3,8 @@
 
 //---------------------------------//
 
-#include "iMath/IMaths.h"
-#include "iPhysics/IPhysicsEngine.h"
+#include "IMath/IMaths.h"
+#include "IPhysics/IPhysicsEngine.h"
 #include "IGeometry/IGeometry.h"
 
 //---------------------------------//

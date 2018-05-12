@@ -4,7 +4,7 @@
 #include <map>
 
 #include "SceneCamera.h"
-#include "IEngine/iPhysics/IPhysicsEngine.h"
+#include "IEngine/IPhysics/IPhysicsEngine.h"
 #include "IEngine/IGeometry/IGeometry.h"
 
 

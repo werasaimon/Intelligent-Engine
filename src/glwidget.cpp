@@ -64,7 +64,7 @@
 #include <QMenu>
 
 #include "glwidget.h"
-#include "IEngine/iMath/IMaths.h"
+#include "IEngine/IMath/IMaths.h"
 
 float mouse_x = 0;
 float mouse_y = 0;

@@ -9,6 +9,7 @@
 
 #include "../math/IMatematical.h"
 #include "../math/IColor.h"
+#include "../math/IRayCast.h"
 #include "../transform/IObject3D.h"
 #include "ITexture2D.h"
 
@@ -227,6 +228,8 @@ class IMeshModel : public IObject3D
         const std::vector<uint>& getIndicess() const { return mIndicess; }
 
 
+        // Raycast method with feedback information
+        virtual bool raycast( IRayCast& _ray_cast ) const {}
 
         //---------------- friendship ----------------------//
 

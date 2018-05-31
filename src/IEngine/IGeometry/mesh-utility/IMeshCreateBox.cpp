@@ -4,6 +4,7 @@ namespace IGeometry
 {
 
 IMeshCreateBox::IMeshCreateBox(const IVector3 &halfSize)
+: mExtentSize(halfSize)
 {
     init(halfSize);
 }

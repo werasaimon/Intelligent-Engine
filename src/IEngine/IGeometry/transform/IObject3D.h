@@ -65,6 +65,15 @@ class IObject3D
         void rotateAroundLocalPoint(const IVector3& axis, float angle, const IVector3& worldPoint);
         /**/
 
+
+        /**/
+        // Scale around a world-space point
+        void scaleAroundWorldPoint(const IVector3& axis, float scale, const IVector3& point);
+
+        // Scale around a local-space point
+        void scaleAroundLocalPoint(const IVector3& axis, float scale, const IVector3& worldPoint);
+        /**/
+
 };
 
 // Return the transform matrix
@@ -138,6 +147,24 @@ inline void IObject3D::rotateAroundLocalPoint(const IVector3& axis, float angle,
 
     mTransformMatrix = mTransformMatrix * IMatrix4x4::createTranslation(localPoint)
                                         * IMatrix4x4::createRotationAxis(axis, angle)
+                                        * IMatrix4x4::createTranslation(-localPoint);
+}
+
+// Scale around a world-space point
+inline void IObject3D::scaleAroundWorldPoint(const IVector3 &axis, float scale, const IVector3 &worldPoint)
+{
+    mTransformMatrix =   IMatrix4x4::createTranslation( worldPoint) * IMatrix4x4::createScaleAroundAxis(axis, scale)
+                       * IMatrix4x4::createTranslation(-worldPoint) * mTransformMatrix;
+}
+
+// Scale around a local-space poin
+inline void IObject3D::scaleAroundLocalPoint(const IVector3 &axis, float scale, const IVector3 &worldPoint)
+{
+    // Convert the world point into the local coordinate system
+    IVector3 localPoint = mTransformMatrix.getInverse() * worldPoint;
+
+    mTransformMatrix = mTransformMatrix * IMatrix4x4::createTranslation(localPoint)
+                                        * IMatrix4x4::createScaleAroundAxis(axis, scale)
                                         * IMatrix4x4::createTranslation(-localPoint);
 }
 /**/

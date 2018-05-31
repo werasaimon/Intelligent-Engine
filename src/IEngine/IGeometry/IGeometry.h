@@ -7,6 +7,7 @@
 
 #include "camera/ICamera.h"
 #include "transform/IObject3D.h"
+#include "transform/IGizmo.h"
 
 #include "mesh-utility/ITexture2D.h"
 #include "mesh-utility/IMeshModel.h"

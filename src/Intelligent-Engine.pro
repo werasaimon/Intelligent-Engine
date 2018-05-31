@@ -107,7 +107,8 @@ SOURCES += main.cpp\
     UNIT_SCENE/SceneCollideShape.cpp \
     UNIT_SCENE/SceneDynamicBody.cpp \
     glwidget.cpp \
-    IEngine/IPhysics/dynamics/contacts/IContactManager.cpp
+    IEngine/IPhysics/dynamics/contacts/IContactManager.cpp \
+    IEngine/IGeometry/transform/IGizmo.cpp
 
 
 
@@ -182,7 +183,8 @@ HEADERS  += mainwindow.h \
     UNIT_SCENE/SceneDynamicBody.h \
     glwidget.h \
     IEngine/IEngine.h \
-    IEngine/IPhysics/dynamics/contacts/IContactManager.h
+    IEngine/IPhysics/dynamics/contacts/IContactManager.h \
+    IEngine/IGeometry/transform/IGizmo.h
 
 
 FORMS    += mainwindow.ui

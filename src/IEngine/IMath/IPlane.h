@@ -223,7 +223,6 @@ public:
     // vIntersectionLineToPlane(): find the 3D intersection of a segment and a plane
     //    Input:  S = a segment, and Pn = a plane = {Point V0;  Vector n;}
     //    Output: *I0 = the intersect point (when it exists)
-    //    Return: 0 = disjoint (no intersection)
     IVector3D<T> vIntersectionLineToPlane( const ILineSegment3D<T>& _edge , bool parallel_test) const
     {
         IVector3D<T> N = mNormal;
@@ -240,6 +239,25 @@ public:
         return P + W * param;
     }
 
+
+
+    // vIntersectionLineToRay(): find the 3D intersection of a segment and a plane
+    //    Input:  S = a segment, and Pn = a plane = {Point V0;  Vector n;}
+    //    Output: *I0 = the intersect point (when it exists)
+    IVector3D<T> vIntersectionRayToPlane( const IVector3D<T>& _ray_origin , const IVector3D<T>& _ray_dir ) const
+    {
+        IVector3D<T> N = mNormal;
+        IVector3D<T> P = _ray_origin;
+        IVector3D<T> W = _ray_dir;
+
+        T  d =  invTest(P);
+        T  e =  N.dot(W);
+
+        if( IAbs(e) < MACHINE_EPSILON  ) return P;
+
+        T param = d/e;
+        return P + W * param;
+    }
 
     //----------[ output operator ]----------------------------
      /**

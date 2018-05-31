@@ -8,7 +8,6 @@
 namespace IMath
 {
 
-
 /**
  * Class for matrix 4x4
  * @note Data stored in this matrix are in column major order. This arrangement suits OpenGL.
@@ -139,9 +138,9 @@ class IMatrix4x4
 
 
 
-   /**
-    * Resets matrix to be value matrix
-    */
+    /**
+     * Resets matrix to be value matrix
+     */
     SIMD_INLINE void setAllValues(T a1, T a2, T a3, T a4,
                                   T b1, T b2, T b3, T b4,
                                   T c1, T c2, T c3, T c4,
@@ -153,6 +152,16 @@ class IMatrix4x4
         mRows[3][0] = d1; mRows[3][1] = d2; mRows[3][2] = d3; mRows[3][3] = d4;
     }
 
+
+    /**
+     * normalized matrix to be value matrix3x3
+     */
+    void OrthoNormalize()
+    {
+       mRows[0].normalize();
+       mRows[1].normalize();
+       mRows[2].normalize();
+    }
 
 
     //---------------------[ Equality operators ]------------------------------
@@ -307,9 +316,22 @@ class IMatrix4x4
         {
             for (int j = 0; j < 3; j++)
             {
-                mRows[i][j]  = m.mRows[i][j];
+                mRows[i][j]  = m[i][j];
             }
         }
+    }
+
+    /**
+     * Sets position part (vector3) of matrix.
+     *
+     * @param m Position part of matrix
+     */
+    SIMD_INLINE void setPosition(const IVector3D<T>& v)
+    {
+        mRows[3][0]  = v.x;
+        mRows[3][1]  = v.y;
+        mRows[3][2]  = v.z;
+        mRows[3][3]  = 1.0;
     }
 
 
@@ -477,10 +499,24 @@ class IMatrix4x4
               mRows[1][3]*rhs.y +
               mRows[2][3]*rhs.z +
               mRows[3][3];
-
-        return Point / w;
+         return Point / w;
 
     }
+
+
+//    SIMD_INLINE IVector3D<T> operator*(const IVector3D<T>& rhs) const
+//    {
+//        IVector3D<T> u =IVector3D<T>(rhs.x * mRows[0][0] + rhs.y * mRows[1][0] + rhs.z * mRows[2][0] + mRows[3][0],
+//                                     rhs.x * mRows[0][1] + rhs.y * mRows[1][1] + rhs.z * mRows[2][1] + mRows[3][1],
+//                                     rhs.x * mRows[0][2] + rhs.y * mRows[1][2] + rhs.z * mRows[2][2] + mRows[3][2]);
+
+//        float w = mRows[3][0]*rhs.x +
+//                  mRows[3][1]*rhs.y +
+//                  mRows[3][2]*rhs.z +
+//                  mRows[3][3];
+
+//        return u/w;
+//    }
 
 
     /**
@@ -507,6 +543,7 @@ class IMatrix4x4
     			w.mRows[i][j] = n;
     		}
     	}
+
     	return w;
     }
 
@@ -575,6 +612,7 @@ class IMatrix4x4
      */
     SIMD_INLINE IMatrix4x4<T> getInverse() const
     {
+
         // Compute the determinant of the matrix
         T determinant = getDeterminant();
 
@@ -595,6 +633,8 @@ class IMatrix4x4
                   ret.mRows[3][0] = + mRows[3][0] * mRows[2][1] * mRows[1][2] - mRows[2][0] * mRows[3][1] * mRows[1][2] - mRows[3][0] * mRows[1][1] * mRows[2][2]
                                     + mRows[1][0] * mRows[3][1] * mRows[2][2] + mRows[2][0] * mRows[1][1] * mRows[3][2] - mRows[1][0] * mRows[2][1] * mRows[3][2];
 
+
+
                   ret.mRows[0][1] = + mRows[3][1] * mRows[2][2] * mRows[0][3] - mRows[2][1] * mRows[3][2] * mRows[0][3] - mRows[3][1] * mRows[0][2] * mRows[2][3]
                                     + mRows[0][1] * mRows[3][2] * mRows[2][3] + mRows[2][1] * mRows[0][2] * mRows[3][3] - mRows[0][1] * mRows[2][2] * mRows[3][3];
 
@@ -607,6 +647,8 @@ class IMatrix4x4
                   ret.mRows[3][1] = + mRows[2][0] * mRows[3][1] * mRows[0][2] - mRows[3][0] * mRows[2][1] * mRows[0][2] + mRows[3][0] * mRows[0][1] * mRows[2][2]
                                     - mRows[0][0] * mRows[3][1] * mRows[2][2] - mRows[2][0] * mRows[0][1] * mRows[3][2] + mRows[0][0] * mRows[2][1] * mRows[3][2];
 
+
+
                   ret.mRows[0][2] = + mRows[1][1] * mRows[3][2] * mRows[0][3] - mRows[3][1] * mRows[1][2] * mRows[0][3] + mRows[3][1] * mRows[0][2] * mRows[1][3]
                                     - mRows[0][1] * mRows[3][2] * mRows[1][3] - mRows[1][1] * mRows[0][2] * mRows[3][3] + mRows[0][1] * mRows[1][2] * mRows[3][3];
 
@@ -618,6 +660,8 @@ class IMatrix4x4
 
                   ret.mRows[3][2] = + mRows[3][0] * mRows[1][1] * mRows[0][2] - mRows[1][0] * mRows[3][1] * mRows[0][2] - mRows[3][0] * mRows[0][1] * mRows[1][2]
                                     + mRows[0][0] * mRows[3][1] * mRows[1][2] + mRows[1][0] * mRows[0][1] * mRows[3][2] - mRows[0][0] * mRows[1][1] * mRows[3][2];
+
+
 
                   ret.mRows[0][3] = + mRows[2][1] * mRows[1][2] * mRows[0][3] - mRows[1][1] * mRows[2][2] * mRows[0][3] - mRows[2][1] * mRows[0][2] * mRows[1][3]
                                     + mRows[0][1] * mRows[2][2] * mRows[1][3] + mRows[1][1] * mRows[0][2] * mRows[2][3] - mRows[0][1] * mRows[1][2] * mRows[2][3];
@@ -632,7 +676,10 @@ class IMatrix4x4
                                     - mRows[0][0] * mRows[2][1] * mRows[1][2] - mRows[1][0] * mRows[0][1] * mRows[2][2] + mRows[0][0] * mRows[1][1] * mRows[2][2];
 
         return ret / determinant;
+        /**/
     }
+
+
 
     /**
     * Transpose matrix.
@@ -655,9 +702,9 @@ class IMatrix4x4
     SIMD_INLINE IMatrix4x4<T> getAbsoluteMatrix() const
     {
         return IMatrix4x4<T>(IAbs(mRows[0][0]), IAbs(mRows[0][1]), IAbs(mRows[0][2]), IAbs(mRows[0][3]),
-                              IAbs(mRows[1][0]), IAbs(mRows[1][1]), IAbs(mRows[1][2]), IAbs(mRows[1][3]),
-                              IAbs(mRows[2][0]), IAbs(mRows[2][1]), IAbs(mRows[2][2]), IAbs(mRows[2][3]),
-                              IAbs(mRows[3][0]), IAbs(mRows[3][1]), IAbs(mRows[3][2]), IAbs(mRows[3][3]));
+                             IAbs(mRows[1][0]), IAbs(mRows[1][1]), IAbs(mRows[1][2]), IAbs(mRows[1][3]),
+                             IAbs(mRows[2][0]), IAbs(mRows[2][1]), IAbs(mRows[2][2]), IAbs(mRows[2][3]),
+                             IAbs(mRows[3][0]), IAbs(mRows[3][1]), IAbs(mRows[3][2]), IAbs(mRows[3][3]));
     }
 
 
@@ -667,6 +714,19 @@ class IMatrix4x4
         // Compute and return the trace
         return (mRows[0][0] + mRows[1][1] + mRows[2][2] + mRows[3][3]);
     }
+
+
+    /**
+    * Return the coords of the matrix
+    */
+    SIMD_INLINE IVector3D<T> getCoords() const
+    {
+        // Compute and return the coords
+        return IVector3D<T>(mRows[3][0] , mRows[3][1] , mRows[3][2]);
+    }
+
+
+
 
 
 
@@ -740,6 +800,9 @@ class IMatrix4x4
 
 
 
+
+
+
     ///---------------------------[ Pulgins ] -----------------------------------///
 
 
@@ -769,6 +832,88 @@ class IMatrix4x4
                               vector.t , vector.y , vector.x , 0);
      }
 
+
+
+
+
+
+     /**
+      * Returns a scaling matrix that scales
+      *
+      * @param scaleFactors Scale .
+      * @return Scaling matrix.
+      */
+     static SIMD_INLINE IMatrix4x4<T> createScale( const T& _scale )
+     {
+         static IMatrix4x4 res;
+
+         T _x = T(1. + _scale);
+         T _y = T(1. + _scale);
+         T _z = T(1. + _scale);
+
+         res.mRows[0] = IVector4D<T>(_x , 0.f, 0.f, 0.f);
+         res.mRows[1] = IVector4D<T>(0.f, _y , 0.f, 0.f);
+         res.mRows[2] = IVector4D<T>(0.f, 0.f, _z , 0.f);
+         res.mRows[3] = IVector4D<T>(0.f, 0.f, 0.f, 1.f);
+
+         return res;
+     }
+
+
+     /**
+      * Returns a scaling matrix that scales
+      *
+      * @param scaleFactors Scale .
+      * @return Scaling matrix.
+      */
+     static SIMD_INLINE IMatrix4x4<T> createScale( const IVector3D<T>& _scale )
+     {
+         static IMatrix4x4 res;
+
+         T _x = T(1. + _scale.x);
+         T _y = T(1. + _scale.y);
+         T _z = T(1. + _scale.z);
+
+         res.mRows[0] = IVector4D<T>(_x , 0.f, 0.f, 0.f);
+         res.mRows[1] = IVector4D<T>(0.f, _y , 0.f, 0.f);
+         res.mRows[2] = IVector4D<T>(0.f, 0.f, _z , 0.f);
+         res.mRows[3] = IVector4D<T>(0.f, 0.f, 0.f, 1.f);
+
+         return res;
+     }
+
+
+     /**
+      * Returns a scaling around axis matrix that scales
+      * @return axis to scaling matrix.
+      */
+     static SIMD_INLINE IMatrix4x4<T>  createScaleAroundAxis( const IVector3D<T> n , T _scale )
+     {
+         static IMatrix4x4<T> M;
+         T gamma = (_scale);
+
+         M.mRows[0][0]= 1.0+((gamma - 0.0)*((n.x * n.x)));
+         M.mRows[1][0]=     ((gamma - 0.0)*((n.y * n.x)));
+         M.mRows[2][0]=     ((gamma - 0.0)*((n.z * n.x)));
+         M.mRows[3][0]= 0;
+
+         M.mRows[0][1]=     ((gamma - 0.0)*((n.x * n.y)));
+         M.mRows[1][1]= 1.0+((gamma - 0.0)*((n.y * n.y)));
+         M.mRows[2][1]=     ((gamma - 0.0)*((n.z * n.y)));
+         M.mRows[3][1]= 0;
+
+         M.mRows[0][2]=      ((gamma - 0.0)*((n.x * n.z)));
+         M.mRows[1][2]=      ((gamma - 0.0)*((n.y * n.z)));
+         M.mRows[2][2]=  1.0+((gamma - 0.0)*((n.z * n.z)));
+         M.mRows[3][2]= 0;
+
+         M.mRows[0][3]= 0;
+         M.mRows[1][3]= 0;
+         M.mRows[2][3]= 0;
+         M.mRows[3][3]= 1.0;
+
+         return M;
+     }
 
 
      /*****************************************************
@@ -893,8 +1038,7 @@ class IMatrix4x4
     	 M[0][3] =  v*n.x*gamma/(c*c);
     	 M[1][3] =  v*n.y*gamma/(c*c);
     	 M[2][3] =  v*n.z*gamma/(c*c);
-    	 M[3][3] =  gamma;
-
+    	 M[3][3] =  gamma;  
 
     	 return M;
      }
@@ -1251,8 +1395,6 @@ class IMatrix4x4
 
            return ret;
        }
-
-
 
 
 

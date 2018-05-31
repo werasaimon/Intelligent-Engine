@@ -131,6 +131,16 @@ template<class T> class IMatrix2x2
 
 
         /**
+         * normalized matrix to be value matrix2x2
+         */
+        void OrthoNormalize()
+        {
+           mRows[0].normalize();
+           mRows[1].normalize();
+        }
+
+
+        /**
          * Matrix entry accessor operator.
          *
          * @note Entry indicies are in the range 0 <= `index` <= 8.
@@ -585,10 +595,17 @@ template<class T> class IMatrix2x2
          * @param scaleFactors Scale factors.
          * @return Scaling matrix.
          */
-        static SIMD_INLINE IMatrix2x2<T> createScaling(const IVector2D<T>& scaleFactors)
+        static SIMD_INLINE IMatrix2x2<T> createScale(const IVector2D<T>& _scale )
         {
-            return IMatrix2x2<T>(  scaleFactors.x, 0.0f,
-                                    0.0f, scaleFactors.y);
+            static IMatrix2x2 res;
+
+            T _x = T(1. + _scale.x);
+            T _y = T(1. + _scale.y);
+
+            res.mRows[0] = IVector2D<T>( _x  ,  0.f );
+            res.mRows[1] = IVector2D<T>( 0.f , _y   );
+
+            return res;
         }
 
         /**
@@ -597,10 +614,36 @@ template<class T> class IMatrix2x2
          * @param scale Uniform scale factor.
          * @return Scaling matrix.
          */
-        static SIMD_INLINE IMatrix2x2<T> createScaling(const T factor)
+        static SIMD_INLINE IMatrix2x2<T> createScale(const T _scale)
         {
-            return IMatrix2x2<T>( factor, 0.0f,
-                                   0.0f, factor);
+            static IMatrix2x2 res;
+
+            T _x = T(1. + _scale);
+            T _y = T(1. + _scale);
+
+            res.mRows[0] = IVector2D<T>( _x ,  0.f );
+            res.mRows[1] = IVector2D<T>( 0.f , _y  );
+
+            return res;
+        }
+
+
+        /**
+         * Returns a scaling around axis matrix that scales
+         * @return axis to scaling matrix.
+         */
+        static SIMD_INLINE IMatrix2x2<T>  createScaleAroundAxis( const IVector2D<T> _axis , T _scale )
+        {
+            static IMatrix2x2<T> M;
+            T bgamma = (_scale - 1.0);
+
+            M[0][0] = 1.0+((bgamma)*((_axis.x * _axis.x)));
+            M[1][0] =     ((bgamma)*((_axis.y * _axis.x)));
+
+            M[0][1] =     ((bgamma)*((_axis.x * _axis.y)));
+            M[1][1] = 1.0+((bgamma)*((_axis.y * _axis.y)));
+
+            return M;
         }
 
         /**

@@ -146,6 +146,17 @@ template<class T> class IMatrix3x3
 
 
 
+      /**
+       * normalized matrix to be value matrix3x3
+       */
+      void OrthoNormalize()
+      {
+         mRows[0].normalize();
+         mRows[1].normalize();
+         mRows[2].normalize();
+      }
+
+
       //---------------------[ assignment operations ]---------------------------------
 
       /**
@@ -534,6 +545,9 @@ template<class T> class IMatrix3x3
 
 
 
+
+
+
       /**
       * Return the diagonalize of the matrix
       */
@@ -728,11 +742,19 @@ template<class T> class IMatrix3x3
         * @param scaleFactors Scale factors.
         * @return Scaling matrix.
         */
-       static SIMD_INLINE IMatrix3x3<T> createScaling(const IVector3D<T>& scaleFactors)
+       static SIMD_INLINE IMatrix3x3<T> createScale(const IVector3D<T>& _scale )
        {
-           return IMatrix3x3<T>(  scaleFactors.x, 0.0f , 0.0f ,
-                                   0.0f, scaleFactors.y , 0.0f ,
-                                   0.0f , 0.0f , scaleFactors.z);
+           static IMatrix3x3 res;
+
+           T _x = T(1. + _scale.x);
+           T _y = T(1. + _scale.y);
+           T _z = T(1. + _scale.z);
+
+           res.mRows[0] = IVector3D<T>(_x , 0.f, 0.f);
+           res.mRows[1] = IVector3D<T>(0.f, _y , 0.f);
+           res.mRows[2] = IVector3D<T>(0.f, 0.f, _z );
+
+           return res;
        }
 
        /**
@@ -741,14 +763,47 @@ template<class T> class IMatrix3x3
         * @param scale Uniform scale factor.
         * @return Scaling matrix.
         */
-       static SIMD_INLINE IMatrix3x3<T> createScaling(const T factor)
+       static SIMD_INLINE IMatrix3x3<T> createScale(const T _scale)
        {
-           return IMatrix3x3<T>( factor, 0.0f  , 0.0f ,
-                                  0.0f  , factor, 0.0f ,
-                                  0.0f  , 0.0f  , factor);
+           static IMatrix3x3 res;
+
+           T _x = T(1. + _scale);
+           T _y = T(1. + _scale);
+           T _z = T(1. + _scale);
+
+           res.mRows[0] = IVector3D<T>(_x , 0.f, 0.f);
+           res.mRows[1] = IVector3D<T>(0.f, _y , 0.f);
+           res.mRows[2] = IVector3D<T>(0.f, 0.f, _z );
+
+           return res;
        }
 
 
+
+
+       /**
+        * Returns a scaling around axis matrix that scales
+        * @return axis to scaling matrix.
+        */
+       static SIMD_INLINE IMatrix3x3<T>  createScaleAroundAxis( const IVector3D<T> _axis , T _scale )
+       {
+           static IMatrix3x3<T> M;
+           T bgamma = (_scale - 1.0);
+
+           M[0][0] = 1.0+((bgamma)*((_axis.x * _axis.x)));
+           M[1][0] =     ((bgamma)*((_axis.y * _axis.x)));
+           M[2][0] =     ((bgamma)*((_axis.z * _axis.x)));
+
+           M[0][1] =     ((bgamma)*((_axis.x * _axis.y)));
+           M[1][1] = 1.0+((bgamma)*((_axis.y * _axis.y)));
+           M[2][1] =     ((bgamma)*((_axis.z * _axis.y)));
+
+           M[0][2] =      ((bgamma)*((_axis.x * _axis.z)));
+           M[1][2] =      ((bgamma)*((_axis.y * _axis.z)));
+           M[2][2] =  1.0+((bgamma)*((_axis.z * _axis.z)));
+
+           return M;
+       }
 
       /*****************************************************
        *  Help info to web site:  https://arxiv.org/pdf/1103.0156.pdf

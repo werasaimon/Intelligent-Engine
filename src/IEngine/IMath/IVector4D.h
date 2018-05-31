@@ -95,7 +95,7 @@ public:
     }
 
     /**
-     * Creates and sets to (x,y,z,z)
+     * Creates and sets to (x,y,z,w)
      * @param nx initial x-coordinate value (R)
      * @param ny initial y-coordinate value (G)
      * @param nz initial z-coordinate value (B)
@@ -103,6 +103,19 @@ public:
      */
     SIMD_INLINE IVector4D(T nx, T ny, T nz, T nw)
        : x(nx), y(ny), z(nz), w(nw)
+    {
+    }
+
+
+    /**
+     * Creates and sets to (n,w)
+     * @param nx initial n.x-coordinate value (R)
+     * @param ny initial n.y-coordinate value (G)
+     * @param nz initial n.z-coordinate value (B)
+     * @param nw initial w-coordinate value (Alpha)
+     */
+    SIMD_INLINE IVector4D(const IVector3D<T>& n , T nw)
+    : x(n.x), y(n.y), z(n.z), w(nw)
     {
     }
 
@@ -150,12 +163,22 @@ public:
     SIMD_INLINE T getY() const { return y; }
     SIMD_INLINE T getZ() const { return z; }
     SIMD_INLINE T getW() const { return w; }
+    SIMD_INLINE IVector3D<T> getV() const
+    {
+        return IVector3D<T>(x,y,z);
+    }
 
 
     SIMD_INLINE void SetX(T _x) { x = _x; }
     SIMD_INLINE void SetY(T _y) { y = _y; }
     SIMD_INLINE void SetZ(T _z) { z = _z; }
     SIMD_INLINE void SetW(T _w) { w = _w; }
+    SIMD_INLINE void SetV(const IVector3D<T> _v)
+    {
+        x=_v.x;
+        y=_v.y;
+        z=_v.z;
+    }
 
     //----------------[ access operators ]-------------------
     /**
@@ -569,6 +592,22 @@ public:
         return IVector4D<T>( T(1.0/x) , T(1.0/y) , T(1.0/z) , T(1.0/w));
     }
 
+
+
+
+    /**
+    * Build make plane
+    */
+    IVector4D<T> BuildPlan(const IVector3D<T> & p_point1, const IVector3D<T> &p_normal)
+    {
+       IVector3D<T> normal;
+       normal = (p_normal.normalized());
+       w  = normal.dot(p_point1);
+       x  = normal.x;
+       y  = normal.y;
+       z  = normal.z;
+       return *this;
+    }
 
 
     //--------------[ misc. operations ]-----------------------

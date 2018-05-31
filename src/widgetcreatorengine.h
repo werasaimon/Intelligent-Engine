@@ -15,8 +15,21 @@ public:
     explicit WidgetCreatorEngine(QWidget *parent = 0);
     ~WidgetCreatorEngine();
 
+
+private slots:
+
+     void clickedaction(int index);
+
+//    void Move();
+//    void Scale();
+//    void Rotate();
+
+
+
 private:
     Ui::WidgetCreatorEngine *ui;
+
+
 };
 
 #endif // WIDGETCREATORENGINE_H

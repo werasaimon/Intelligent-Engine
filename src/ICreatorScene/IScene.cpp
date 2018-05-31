@@ -1,2 +1,2 @@
-#include "scene.h"
+#include "IScene.h"
 

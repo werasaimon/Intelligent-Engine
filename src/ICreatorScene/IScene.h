@@ -1,10 +1,8 @@
-#ifndef SCENE_H
-#define SCENE_H
+#ifndef ISCENE_H
+#define ISCENE_H
 
 
-
-
-class UnitKey
+class IUnitKey
 {
   protected:
 
@@ -37,15 +35,15 @@ class UnitKey
 
 
 
-class Scene : public  UnitKey
+class IScene : public  IUnitKey
 {
 public:
-    Scene()
+    IScene()
     {
 
     }
 
-    virtual ~Scene()
+    virtual ~IScene()
     {
     }
 
@@ -64,4 +62,4 @@ public:
 
 };
 
-#endif // SCENE_H
+#endif // ISCENE_H

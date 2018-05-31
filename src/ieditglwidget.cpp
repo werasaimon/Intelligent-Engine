@@ -56,20 +56,17 @@
 
 
 #include <QMouseEvent>
-#include <math.h>
-
 #include <QCoreApplication>
 #include <QDir>
-
 #include <QMenu>
 
-#include "glwidget.h"
-#include "IEngine/IMath/IMaths.h"
+#include <math.h>
+#include "ieditglwidget.h"
 
 float mouse_x = 0;
 float mouse_y = 0;
 
-GLWidget::GLWidget(QWidget *parent)
+IEditGLWidget::IEditGLWidget(QWidget *parent)
   : QOpenGLWidget(parent)
 {
 
@@ -78,7 +75,7 @@ GLWidget::GLWidget(QWidget *parent)
 
 
 
-GLWidget::~GLWidget()
+IEditGLWidget::~IEditGLWidget()
 {
     // Make sure the context is current when deleting the texture
     // and the buffers.
@@ -88,7 +85,7 @@ GLWidget::~GLWidget()
 
 
 
-void GLWidget::initializeGL()
+void IEditGLWidget::initializeGL()
 {
 
 
@@ -111,7 +108,7 @@ void GLWidget::initializeGL()
     glEnable(GL_CULL_FACE);
 
     /// initilisation scene
-    mScene = new SceneDynamicBody;
+    mScene = new ICreatorScene;
     mScene->initialization();
 
 
@@ -124,7 +121,7 @@ void GLWidget::initializeGL()
 
 
 
-void GLWidget::resizeGL( int w , int h )
+void IEditGLWidget::resizeGL( int w , int h )
 {
 
    mScene->resize( w , h );
@@ -167,26 +164,26 @@ void GLWidget::resizeGL( int w , int h )
 }
 
 
-void GLWidget::paintGL()
+void IEditGLWidget::paintGL()
 {
     mScene->render(1.f/60.f);
 }
 
 
-void GLWidget::timerEvent(QTimerEvent *e)
+void IEditGLWidget::timerEvent(QTimerEvent *e)
 {
-    update();
     mScene->update();
+    update();
 }
 
 
-void GLWidget::keyPressEvent(QKeyEvent *keyEvent)
+void IEditGLWidget::keyPressEvent(QKeyEvent *keyEvent)
 {
    mScene->specialKeyboardDown( keyEvent->key() );
    mScene->keyboard( keyEvent->key() );
 }
 
-void GLWidget::keyReleaseEvent(QKeyEvent *keyEvent)
+void IEditGLWidget::keyReleaseEvent(QKeyEvent *keyEvent)
 {
    mScene->specialKeyboardUp(  keyEvent->key() );
    keyEvent->accept();
@@ -194,22 +191,24 @@ void GLWidget::keyReleaseEvent(QKeyEvent *keyEvent)
 
 
 
-void GLWidget::wheelEvent(QWheelEvent *event)
+void IEditGLWidget::wheelEvent(QWheelEvent *event)
 {
    mScene->mouseWheel(event->delta());
    event->accept();
 }
 
 
-void GLWidget::mouseMoveEvent(QMouseEvent *e)
+
+void IEditGLWidget::mouseMoveEvent(QMouseEvent *e)
 {
   mouse_x = e->pos().x();
   mouse_x = e->pos().y();
 
   mScene->mouseMove( e->pos().x() , e->pos().y() , e->button() );
+
 }
 
-void GLWidget::mousePressEvent(QMouseEvent *e)
+void IEditGLWidget::mousePressEvent(QMouseEvent *e)
 {
 
   mouse_x = e->pos().x();
@@ -217,7 +216,7 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
 
   mScene->mousePress( e->pos().x() , e->pos().y() , e->button() );
 
-   /**
+   /**/
    if( e->button() == Qt::RightButton )
    {
        QMenu menu(this);
@@ -225,9 +224,11 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
        menu.addAction( "Move"   , this  , SLOT(Move())   );
        menu.addAction( "Scale"  ,  this , SLOT(Scale())  );
        menu.addAction( "Rotate" ,  this , SLOT(Rotate()) );
-       e->pos().setX(mouse_x);
-       e->pos().setY(mouse_y);
-       menu.exec(e->pos());
+       menu.exec(e->globalPos());
+
+       //e->pos().setX(mouse_x);
+       //e->pos().setY(mouse_y);
+       //menu.exec(e->pos());
    }
    else
    {
@@ -236,27 +237,27 @@ void GLWidget::mousePressEvent(QMouseEvent *e)
    /**/
 }
 
-void GLWidget::mouseReleaseEvent(QMouseEvent *e)
+void IEditGLWidget::mouseReleaseEvent(QMouseEvent *e)
 {
    mScene->mouseReleasePress( e->pos().x() , e->pos().y() , e->button() );
 }
 
 
-void GLWidget::closeEvent(QCloseEvent *event)
+void IEditGLWidget::closeEvent(QCloseEvent *event)
 {
    mScene->destroy();
    event->accept();
 }
 
-//Scene *GLWidget::scene()
-//{
-//    return mScene;
-//}
+IScene *IEditGLWidget::scene()
+{
+    return mScene;
+}
 
-//void GLWidget::setScene(Scene *scene)
-//{
-//    mScene = scene;
-//}
+void IEditGLWidget::setScene(IScene *scene)
+{
+    mScene = scene;
+}
 
 
 

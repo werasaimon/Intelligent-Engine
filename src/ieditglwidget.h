@@ -67,20 +67,17 @@
 #include <QTextStream>
 
 
-#include "UNIT_SCENE/Scene.h"
-#include "UNIT_SCENE/SceneCamera.h"
-#include "UNIT_SCENE/SceneCollideShape.h"
-#include "UNIT_SCENE/SceneDynamicBody.h"
+#include "ICreatorScene/IScene.h"
+#include "ICreatorScene/ICreatorScene.h"
 
 
-
-class GLWidget : public QOpenGLWidget , protected QOpenGLFunctions
+class IEditGLWidget : public QOpenGLWidget , protected QOpenGLFunctions
 {
     Q_OBJECT
 
 public:
-    explicit GLWidget(QWidget *parent = 0);
-            ~GLWidget();
+    explicit IEditGLWidget(QWidget *parent = 0);
+            ~IEditGLWidget();
 
 //protected:
 public:
@@ -104,20 +101,39 @@ public:
 
     void closeEvent(QCloseEvent *event);
 
+    IScene *scene();
 
-    //Scene *scene();
-
-    //void setScene( Scene *scene );
+    void setScene( IScene *scene );
 
 private:
 
     QBasicTimer  timer;
 
     /// scene open GL
-    Scene* mScene;
+    IScene* mScene;
+
 
 
 private slots:
+
+
+    void Move()
+    {
+      cout<< "Move" <<endl;
+      static_cast<ICreatorScene*>(mScene)->GizmoContext._TransformMode_ = IGeometry::Context::Move;
+    }
+
+    void Scale()
+    {
+      cout<< "Scale" <<endl;
+      static_cast<ICreatorScene*>(mScene)->GizmoContext._TransformMode_ = IGeometry::Context::Scale;
+    }
+
+    void Rotate()
+    {
+      cout<< "Rotate" <<endl;
+      static_cast<ICreatorScene*>(mScene)->GizmoContext._TransformMode_ = IGeometry::Context::Rotate;
+    }
 
 
 };

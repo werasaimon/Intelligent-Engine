@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT  += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -66,7 +66,12 @@ SOURCES +=\
     IEngine/IPhysics/dynamics/ICollisionWorld.cpp \
     IEngine/IPhysics/dynamics/IDynamicsWorld.cpp \
     IEngine/IPhysics/dynamics/IIsland.cpp \
-    IEngine/IPhysics/dynamics/IOverlappingPair.cpp
+    IEngine/IPhysics/dynamics/IOverlappingPair.cpp \
+    IEngine/IGeometry/transform/IGizmo.cpp \
+    ICreatorScene/IScene.cpp \
+    ICreatorScene/ICreatorScene.cpp \
+    IEngine/IGeometry/math/IRayCast.cpp \
+    ieditglwidget.cpp
 
 HEADERS  += widgetcreatorengine.h \
     IEngine/IGeometry/camera/ICamera.h \
@@ -134,6 +139,11 @@ HEADERS  += widgetcreatorengine.h \
     IEngine/IPhysics/dynamics/IOverlappingPair.h \
     IEngine/IPhysics/dynamics/ITimeStep.h \
     IEngine/IPhysics/IPhysicsEngine.h \
-    IEngine/IEngine.h
+    IEngine/IEngine.h \
+    IEngine/IGeometry/transform/IGizmo.h \
+    ICreatorScene/IScene.h \
+    ICreatorScene/ICreatorScene.h \
+    IEngine/IGeometry/math/IRayCast.h \
+    ieditglwidget.h
 
 FORMS    += widgetcreatorengine.ui

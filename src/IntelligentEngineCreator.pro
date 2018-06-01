@@ -11,6 +11,44 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = IntelligentEngineCreator
 TEMPLATE = app
 
+
+#---------------------------------------#
+#QMAKE_CXXFLAGS += -m32
+QMAKE_CXXFLAGS += -std=c++11
+
+#LIBS += -lGL -lGLU -lglut
+#LIBS += -lX11
+
+#Linux
+linux: {
+
+#Android
+ android: {
+  LIBS +=  -lGLESv1_CM -lGLESv2
+}
+
+#Linux default
+ !android: {
+   LIBS += -lGL -lGLU #-lglut #-lGLEW
+}
+
+}
+
+
+#Windows
+win32: {
+   LIBS += -lopengl32 -lglu32 #-lglew32
+}
+
+#Windows
+win64: {
+   LIBS += -lopengl32 -lglu32 #-lglew32
+}
+
+
+QMAKE_RPATHDIR += $ORIGIN/lib
+#---------------------------------------#
+
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the

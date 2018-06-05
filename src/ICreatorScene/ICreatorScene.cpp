@@ -633,7 +633,6 @@ void ICreatorScene::keyboard(int key)
     {
         if( mSelectedIndexID >= 0 )
         {
-            cout<< "delete" <<endl;
             if(mGMeshModels[mSelectedIndexID] != NULL)
             {
                auto rm = remove( &mGMeshModels , mGMeshModels[mSelectedIndexID]);

@@ -18,6 +18,16 @@ WidgetCreatorEngine::~WidgetCreatorEngine()
     delete ui;
 }
 
+void WidgetCreatorEngine::keyPressEvent(QKeyEvent *keyEvent)
+{
+     ui->widget1->keyPressEvent(keyEvent);
+}
+
+void WidgetCreatorEngine::keyReleaseEvent(QKeyEvent *keyEvent)
+{
+    ui->widget1->keyReleaseEvent(keyEvent);
+}
+
 void WidgetCreatorEngine::clickedaction(int index)
 {
     if( index == 0 )

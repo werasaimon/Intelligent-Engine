@@ -41,6 +41,20 @@ namespace
     }
 
 
+    template<class T>
+    T* remove(std::vector<T*>* v, T* val)
+    {
+        auto it = std::find(v->begin(), v->end(), val);
+        if(it != v->end())
+        {
+            v->erase(it);
+            return val;
+        }
+
+        return NULL;
+    }
+
+
      IGeometry::IVector3 mousePoint;
 
      IGeometry::IVector3 HitPoint;
@@ -195,6 +209,9 @@ void ICreatorScene::render(float FrameTime)
 
     for (unsigned int i = 0; i < mGMeshModels.size(); ++i)
     {
+
+        if( mGMeshModels[i] == NULL ) continue;
+
         glPushMatrix();
 
 //        if( mPhysicsBodies[mPhysMapIndexes[mModels[i]]] != NULL)
@@ -251,17 +268,21 @@ void ICreatorScene::render(float FrameTime)
 
 
 
-    for ( auto it = GizmoDrawList.mLineSegments.begin(); it != GizmoDrawList.mLineSegments.end(); ++it )
+
+    if( mSelectedIndexID >= 0 )
     {
-        glPushMatrix();
-        glLineWidth(10);
-        glBegin(GL_LINES);
-         glColor4fv(it->mColor);
-         glVertex3fv(it->mPoint1);
-         glVertex3fv(it->mPoint2);
-        glEnd();
-        glLineWidth(1);
-        glPopMatrix();
+        for ( auto it = GizmoDrawList.mLineSegments.begin(); it != GizmoDrawList.mLineSegments.end(); ++it )
+        {
+            glPushMatrix();
+            glLineWidth(10);
+            glBegin(GL_LINES);
+             glColor4fv(it->mColor);
+             glVertex3fv(it->mPoint1);
+             glVertex3fv(it->mPoint2);
+            glEnd();
+            glLineWidth(1);
+            glPopMatrix();
+        }
     }
 
 
@@ -280,7 +301,7 @@ void ICreatorScene::update()
     //GizmoContext.EyeCamera    = mEye;
     //GizmoContext.CenterCamera = mCenter;
 
-    if( mSelectedIndexID >= 0 )
+    if( mSelectedIndexID >= 0 && mGMeshModels[mSelectedIndexID] != NULL )
     {
         GizmoContext.mbUsing = m_mouse_is;
 
@@ -328,6 +349,8 @@ void ICreatorScene::mouseMove(float x, float y, int button)
 
         mouseOldX = x;
         mouseOldY = y;
+
+        //mSelectedIndexID = -1;
     }
     else
     {
@@ -599,13 +622,31 @@ void ICreatorScene::mouseReleasePress(float x, float y, int button)
 void ICreatorScene::mouseWheel(float delta)
 {
   MoveLegth_FocusCamera += (delta * 0.01f);
+
 }
 
 //-----------------------------------------------------//
 
 void ICreatorScene::keyboard(int key)
 {
-
+    if( Qt::Key_D ==  key )
+    {
+        if( mSelectedIndexID >= 0 )
+        {
+            cout<< "delete" <<endl;
+            if(mGMeshModels[mSelectedIndexID] != NULL)
+            {
+               auto rm = remove( &mGMeshModels , mGMeshModels[mSelectedIndexID]);
+               if(rm != NULL)
+               {
+                   delete rm;
+                   rm = NULL;
+               }
+              // mGMeshModels[mSelectedIndexID] = NULL;
+               mSelectedIndexID = -1;
+            }
+        }
+    }
 }
 
 void ICreatorScene::destroy()

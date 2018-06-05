@@ -16,6 +16,10 @@ public:
     ~WidgetCreatorEngine();
 
 
+    void keyPressEvent( QKeyEvent *keyEvent );
+    void keyReleaseEvent( QKeyEvent *keyEvent );
+
+
 private slots:
 
      void clickedaction(int index);

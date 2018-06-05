@@ -181,6 +181,7 @@ void IEditGLWidget::keyPressEvent(QKeyEvent *keyEvent)
 {
    mScene->specialKeyboardDown( keyEvent->key() );
    mScene->keyboard( keyEvent->key() );
+
 }
 
 void IEditGLWidget::keyReleaseEvent(QKeyEvent *keyEvent)

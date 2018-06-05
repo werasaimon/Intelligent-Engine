@@ -34,7 +34,6 @@ linux: {
 
 }
 
-
 #Windows
 win32: {
    LIBS += -lopengl32 -lglu32 #-lglew32

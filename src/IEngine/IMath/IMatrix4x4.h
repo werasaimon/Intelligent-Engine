@@ -60,6 +60,34 @@ class IMatrix4x4
         std::memcpy(mData, src.mData, sizeof(T) * 16);
     }
 
+    /**
+     * Copy constructor.
+     * @param src Data source for new created instance of IMatrix4x4.
+     */
+    SIMD_INLINE IMatrix4x4(const IMatrix3x3<T>& src)
+    {
+        mRows[0][0]  = src[0][0];
+        mRows[1][0]  = src[1][0];
+        mRows[2][0]  = src[2][0];
+        mRows[3][0]  = 0.0;
+
+        mRows[0][1]  = src[0][1];
+        mRows[1][1]  = src[1][1];
+        mRows[2][1]  = src[2][1];
+        mRows[3][1]  = 0.0;
+
+        mRows[0][2]  = src[0][2];
+        mRows[1][2]  = src[1][2];
+        mRows[2][2]  = src[2][2];
+        mRows[3][2]  = 0.0;
+
+        mRows[0][3]  = 0.0;
+        mRows[1][3]  = 0.0;
+        mRows[2][3]  = 0.0;
+        mRows[3][3]  = 1.0;
+
+    }
+
     // Constructor
     SIMD_INLINE IMatrix4x4<T>(T value)
     {

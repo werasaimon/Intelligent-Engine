@@ -149,7 +149,7 @@ template<class T> class IMatrix3x3
       /**
        * normalized matrix to be value matrix3x3
        */
-      void OrthoNormalize()
+      SIMD_INLINE void OrthoNormalize()
       {
          mRows[0].normalize();
          mRows[1].normalize();

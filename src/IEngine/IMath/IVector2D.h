@@ -166,7 +166,7 @@ public:
         return (&x)[n];
     }
 
-    //---------------[ vector aritmetic operator ]--------------
+    //---------------[ vector arithmetic operator ]--------------
     /**
      * Addition operator
      * @param rhs Right hand side argument of binary operator.

@@ -1083,7 +1083,7 @@ class IMatrix4x4
         */
        static SIMD_INLINE IMatrix4x4<T> createTranslation(T x, T y, T z, T w = 1)
        {
-           IMatrix4x4 ret;
+           IMatrix4x4<T> ret;
            ret.mRows[3][0] = x;
            ret.mRows[3][1] = y;
            ret.mRows[3][2] = z;
@@ -1103,7 +1103,7 @@ class IMatrix4x4
         */
        static SIMD_INLINE IMatrix4x4<T> createTranslation(const IVector3D<T> & v, T w = 1)
        {
-           IMatrix4x4 ret;
+           IMatrix4x4<T> ret;
            ret.mRows[3][0] = v.x;
            ret.mRows[3][1] = v.y;
            ret.mRows[3][2] = v.z;
@@ -1289,7 +1289,7 @@ class IMatrix4x4
            //if (nearPlane == farPlane || aspectRatio == 0.0f) *this->identity();
 
            // Construct the projection.
-           IMatrix4x4 m;
+           IMatrix4x4<T> m;
            T radians = IDegreesToRadians(verticalAngle / 2.0f);
            T sine = ISin(radians);
 
@@ -1337,7 +1337,7 @@ class IMatrix4x4
            const T w2 = width / 2.0f;
            const T h2 = height / 2.0f;
 
-           IMatrix4x4 m;
+           IMatrix4x4<T> m;
            m.mRows[0][0] = w2;
            m.mRows[1][0] = 0.0f;
            m.mRows[2][0] = 0.0f;
@@ -1350,6 +1350,30 @@ class IMatrix4x4
            m.mRows[1][2] = 0.0f;
            m.mRows[2][2] = (farPlane - nearPlane) / 2.0f;
            m.mRows[3][2] = (nearPlane + farPlane) / 2.0f;
+           m.mRows[0][3] = 0.0f;
+           m.mRows[1][3] = 0.0f;
+           m.mRows[2][3] = 0.0f;
+           m.mRows[3][3] = 1.0f;
+
+           return m;
+       }
+
+
+       static SIMD_INLINE IMatrix4x4<T> createViewport( T width, T height, T nearPlane, T farPlane)
+       {
+           IMatrix4x4<T> m;
+           m.mRows[0][0] = 1.0/ width;
+           m.mRows[1][0] = 0.0f;
+           m.mRows[2][0] = 0.0f;
+           m.mRows[3][0] = 0.0f;
+           m.mRows[0][1] = 0.0f;
+           m.mRows[1][1] = 1.f / height;
+           m.mRows[2][1] = 0.0f;
+           m.mRows[3][1] = 0.0f;
+           m.mRows[0][2] = 0.0f;
+           m.mRows[1][2] = 0.0f;
+           m.mRows[2][2] = 2.f / (farPlane - nearPlane);
+           m.mRows[3][2] = (nearPlane + farPlane) / (farPlane - nearPlane);
            m.mRows[0][3] = 0.0f;
            m.mRows[1][3] = 0.0f;
            m.mRows[2][3] = 0.0f;
@@ -1372,6 +1396,7 @@ class IMatrix4x4
         */
        static SIMD_INLINE IMatrix4x4<T> createFrustum(T left, T right, T bottom, T top, T zNear, T zFar)
        {
+
            IMatrix4x4<T> ret;
 
            const T invWidth = 1.0 / (right - left);
@@ -1380,15 +1405,15 @@ class IMatrix4x4
 
            const T twoZNear = 2 * zNear;
 
-           ret.mRows[0,0] = twoZNear * invWidth;
-           ret.mRows[1,1] = twoZNear * invHeight;
+           ret.mRows[0][0] = twoZNear * invWidth;
+           ret.mRows[1][1] = twoZNear * invHeight;
 
-           ret.mRows[2,0] = (right + left) * invWidth;
-           ret.mRows[2,1] = (top + bottom) * invHeight;
-           ret.mRows[2,2] = - (zFar + zNear) * invDepth;
-           ret.mRows[2,3] = -1;
+           ret.mRows[2][0] = (right + left) * invWidth;
+           ret.mRows[2][1] = (top + bottom) * invHeight;
+           ret.mRows[2][2] = - (zFar + zNear) * invDepth;
+           ret.mRows[2][3] = -1;
 
-           ret.mRows[3,2] = - twoZNear * zFar * invDepth;
+           ret.mRows[3][2] = - twoZNear * zFar * invDepth;
 
            return ret;
        }
@@ -1407,19 +1432,20 @@ class IMatrix4x4
         */
        static SIMD_INLINE IMatrix4x4<T> createOrtho(T left, T right, T bottom, T top, T zNear, T zFar)
        {
+
            const T invWidth = 1.0 / (right  - left);
            const T invHeight = 1.0 / (top - bottom);
            const T invDepth = 1.0 / (zFar - zNear);
 
            IMatrix4x4<T> ret;
 
-           ret.mRows[0,0] =  2 * invWidth;
-           ret.mRows[1,1] =  2 * invHeight;
-           ret.mRows[2,2] = -2 * invDepth;
+           ret.mRows[0][0] =  2 * invWidth;
+           ret.mRows[1][1] =  2 * invHeight;
+           ret.mRows[2][2] = -2 * invDepth;
 
-           ret.mRows[3,0] = -(right + left) * invWidth;
-           ret.mRows[3,1] = -(top + bottom) * invHeight;
-           ret.mRows[3,2] = -(zFar + zNear) * invDepth;
+           ret.mRows[3][0] = -(right + left) * invWidth;
+           ret.mRows[3][1] = -(top + bottom) * invHeight;
+           ret.mRows[3][2] = -(zFar + zNear) * invDepth;
 
            return ret;
        }

@@ -645,7 +645,7 @@ class IMatrix4x4
         T determinant = getDeterminant();
 
         // Check if the determinant is equal to zero
-        assert(IAbs(determinant) > MACHINE_EPSILON);
+        //assert(IAbs(determinant) > MACHINE_EPSILON);
 
         IMatrix4x4<T> ret;
 
@@ -1241,37 +1241,148 @@ class IMatrix4x4
         */
        static SIMD_INLINE IMatrix4x4<T> createLookAt(const IVector3D<T>& eyePos, const IVector3D<T>& centerPos, const IVector3D<T>& upDir)
        {
-           IVector3D<T> forward, side, up;
-           IMatrix4x4<T> m;
 
-           forward = centerPos - eyePos;
-           up = upDir;
+            IVector3D<T> forward = centerPos - eyePos;
+           if (IAbs(forward.x) < MACHINE_EPSILON &&
+               IAbs(forward.y) < MACHINE_EPSILON &&
+               IAbs(forward.z) < MACHINE_EPSILON)
+           {
+               return IMatrix4x4<T>::IDENTITY;
+           }
 
            forward.normalize();
+           IVector3D<T> side = cross(forward, upDir).normalized();
+           IVector3D<T> upVector = cross(side, forward);
 
-           // Side = forward x up
-           side = forward.cross(up);
-           side.normalize();
-
-           // Recompute up as: up = side x forward
-           up = side.cross(forward);
+           IMatrix4x4<T> m;
+           m.setToIdentity();
 
            m.mRows[0][0] = side.x;
            m.mRows[1][0] = side.y;
            m.mRows[2][0] = side.z;
-
-           m.mRows[0][1] = up.x;
-           m.mRows[1][1] = up.y;
-           m.mRows[2][1] = up.z;
-
+           m.mRows[3][0] = 0.0f;
+           m.mRows[0][1] = upVector.x;
+           m.mRows[1][1] = upVector.y;
+           m.mRows[2][1] = upVector.z;
+           m.mRows[3][1] = 0.0f;
            m.mRows[0][2] = -forward.x;
            m.mRows[1][2] = -forward.y;
            m.mRows[2][2] = -forward.z;
+           m.mRows[3][2] = 0.0f;
+           m.mRows[0][3] = 0.0f;
+           m.mRows[1][3] = 0.0f;
+           m.mRows[2][3] = 0.0f;
+           m.mRows[3][3] = 1.0f;
 
-           m = m * IMatrix4x4<T>::createTranslation(-eyePos.x, -eyePos.y, -eyePos.z);
-           return m;
+           return m * IMatrix4x4<T>::createTranslation(-eyePos);
+
        }
 
+
+
+       /*!
+           Multiplies this matrix by another that applies an orthographic
+           projection for a window with lower-left corner (\a left, \a bottom),
+           upper-right corner (\a right, \a top), and the specified \a nearPlane
+           and \a farPlane clipping planes.
+           \sa frustum(), perspective()
+       */
+       static SIMD_INLINE IMatrix4x4<T> createOrtho(T left, T right, T bottom, T top, T nearPlane, T farPlane)
+       {
+
+         // Bail out if the projection volume is zero-sized.
+          if (left == right || bottom == top || nearPlane == farPlane)
+              return IMatrix4x4<T>::IDENTITY;
+
+          // Construct the projection.
+          T width = right - left;
+          T invheight = top - bottom;
+          T clip = farPlane - nearPlane;
+//      #ifndef QT_NO_VECTOR3D
+//          if (clip == 2.0f && (nearPlane + farPlane) == 0.0f) {
+//              // We can express this projection as a translate and scale
+//              // which will be more efficient to modify with further
+//              // transformations than producing a "General" matrix.
+//              translate(QVector3D
+//                  (-(left + right) / width,
+//                   -(top + bottom) / invheight,
+//                   0.0f));
+//              scale(QVector3D
+//                  (2.0f / width,
+//                   2.0f / invheight,
+//                   -1.0f));
+//              return;
+//          }
+//      #endif
+          IMatrix4x4 m;
+          m.setToIdentity();
+
+          m.mRows[0][0] = 2.0f / width;
+          m.mRows[1][0] = 0.0f;
+          m.mRows[2][0] = 0.0f;
+          m.mRows[3][0] = -(left + right) / width;
+
+          m.mRows[0][1] = 0.0f;
+          m.mRows[1][1] = 2.0f / invheight;
+          m.mRows[2][1] = 0.0f;
+          m.mRows[3][1] = -(top + bottom) / invheight;
+
+          m.mRows[0][2] = 0.0f;
+          m.mRows[1][2] = 0.0f;
+          m.mRows[2][2] = -2.0f / clip;
+          m.mRows[3][2] = -(nearPlane + farPlane) / clip;;
+
+          m.mRows[0][3] = 0.0f;
+          m.mRows[1][3] = 0.0f;
+          m.mRows[2][3] = 0.0f;
+          m.mRows[3][3] = 1.0f;
+
+          // Apply the projection.
+          return m;
+
+       }
+
+
+
+       /*!
+           Multiplies this matrix by another that applies a perspective
+           frustum projection for a window with lower-left corner (\a left, \a bottom),
+           upper-right corner (\a right, \a top), and the specified \a nearPlane
+           and \a farPlane clipping planes.
+           \sa ortho(), perspective()
+       */
+       static SIMD_INLINE IMatrix4x4<T> createFrustum(T left, T right, T bottom, T top, T nearPlane, T farPlane)
+       {
+         // Bail out if the projection volume is zero-sized.
+         if (left == right || bottom == top || nearPlane == farPlane)
+             return IMatrix4x4<T>::IDENTITY;
+
+         // Construct the projection.
+         IMatrix4x4<T> m;
+         m.setToIdentity();
+         T width = right - left;
+         T invheight = top - bottom;
+         T clip = farPlane - nearPlane;
+         m.mRows[0][0] = 2.0f * nearPlane / width;
+         m.mRows[1][0] = 0.0f;
+         m.mRows[2][0] = (left + right) / width;
+         m.mRows[3][0] = 0.0f;
+         m.mRows[0][1] = 0.0f;
+         m.mRows[1][1] = 2.0f * nearPlane / invheight;
+         m.mRows[2][1] = (top + bottom) / invheight;
+         m.mRows[3][1] = 0.0f;
+         m.mRows[0][2] = 0.0f;
+         m.mRows[1][2] = 0.0f;
+         m.mRows[2][2] = -(nearPlane + farPlane) / clip;
+         m.mRows[3][2] = -2.0f * nearPlane * farPlane / clip;
+         m.mRows[0][3] = 0.0f;
+         m.mRows[1][3] = 0.0f;
+         m.mRows[2][3] = -1.0f;
+         m.mRows[3][3] = 0.0f;
+
+         // Apply the projection.
+         return m;
+       }
 
 
        /*!
@@ -1286,7 +1397,7 @@ class IMatrix4x4
        static SIMD_INLINE IMatrix4x4<T> createPerspective(T verticalAngle, T aspectRatio, T nearPlane, T farPlane)
        {
            // Bail out if the projection volume is zero-sized.
-           //if (nearPlane == farPlane || aspectRatio == 0.0f) *this->identity();
+           if (nearPlane == farPlane || aspectRatio == 0.0f) return IMatrix4x4<T>::IDENTITY;
 
            // Construct the projection.
            IMatrix4x4<T> m;
@@ -1322,6 +1433,8 @@ class IMatrix4x4
        }
 
 
+
+
        /*!
            Multiplies this matrix by another that performs the scale and bias
            transformation used by OpenGL to transform from normalized device
@@ -1342,14 +1455,17 @@ class IMatrix4x4
            m.mRows[1][0] = 0.0f;
            m.mRows[2][0] = 0.0f;
            m.mRows[3][0] = left + w2;
+
            m.mRows[0][1] = 0.0f;
            m.mRows[1][1] = h2;
            m.mRows[2][1] = 0.0f;
            m.mRows[3][1] = bottom + h2;
+
            m.mRows[0][2] = 0.0f;
            m.mRows[1][2] = 0.0f;
            m.mRows[2][2] = (farPlane - nearPlane) / 2.0f;
            m.mRows[3][2] = (nearPlane + farPlane) / 2.0f;
+
            m.mRows[0][3] = 0.0f;
            m.mRows[1][3] = 0.0f;
            m.mRows[2][3] = 0.0f;
@@ -1358,97 +1474,6 @@ class IMatrix4x4
            return m;
        }
 
-
-       static SIMD_INLINE IMatrix4x4<T> createViewport( T width, T height, T nearPlane, T farPlane)
-       {
-           IMatrix4x4<T> m;
-           m.mRows[0][0] = 1.0/ width;
-           m.mRows[1][0] = 0.0f;
-           m.mRows[2][0] = 0.0f;
-           m.mRows[3][0] = 0.0f;
-           m.mRows[0][1] = 0.0f;
-           m.mRows[1][1] = 1.f / height;
-           m.mRows[2][1] = 0.0f;
-           m.mRows[3][1] = 0.0f;
-           m.mRows[0][2] = 0.0f;
-           m.mRows[1][2] = 0.0f;
-           m.mRows[2][2] = 2.f / (farPlane - nearPlane);
-           m.mRows[3][2] = (nearPlane + farPlane) / (farPlane - nearPlane);
-           m.mRows[0][3] = 0.0f;
-           m.mRows[1][3] = 0.0f;
-           m.mRows[2][3] = 0.0f;
-           m.mRows[3][3] = 1.0f;
-
-           return m;
-       }
-
-       /**
-        * Creates OpenGL compatible perspective projection according specified frustum parameters.
-        *
-        * @param left Specify the coordinate for the left vertical clipping plane,
-        * @param right Specify the coordinate for the right vertical clipping plane.
-        * @param bottom Specify the coordinate for the bottom horizontal clipping plane,
-        * @param top Specify the coordinate for the top horizontal clipping plane.
-        * @param zNear Specify the distance to the near clipping plane.  Distance must be positive.
-        * @param zFar Specify the distance to the far depth clipping plane.  Distance must be positive.
-        *
-        * @return Projection matrix for specified frustum.
-        */
-       static SIMD_INLINE IMatrix4x4<T> createFrustum(T left, T right, T bottom, T top, T zNear, T zFar)
-       {
-
-           IMatrix4x4<T> ret;
-
-           const T invWidth = 1.0 / (right - left);
-           const T invHeight = 1.0 / (top - bottom);
-           const T invDepth = 1.0 / (zFar - zNear);
-
-           const T twoZNear = 2 * zNear;
-
-           ret.mRows[0][0] = twoZNear * invWidth;
-           ret.mRows[1][1] = twoZNear * invHeight;
-
-           ret.mRows[2][0] = (right + left) * invWidth;
-           ret.mRows[2][1] = (top + bottom) * invHeight;
-           ret.mRows[2][2] = - (zFar + zNear) * invDepth;
-           ret.mRows[2][3] = -1;
-
-           ret.mRows[3][2] = - twoZNear * zFar * invDepth;
-
-           return ret;
-       }
-
-       /**
-        * Creates OpenGL compatible orthographic projection matrix.
-        * @param left Specify the coordinate for the left vertical clipping plane,
-        * @param right Specify the coordinate for the right vertical clipping plane.
-        * @param bottom Specify the coordinate for the bottom horizontal clipping plane,
-        * @param top Specify the coordinate for the top horizontal clipping plane.
-        * @param zNear Specify the distance to the nearer depth clipping plane.
-        *       This value is negative if the plane is to be behind the viewer,
-        * @param zFar Specify the distance to the farther depth clipping plane.
-        *       This value is negative if the plane is to be behind the viewer.
-        * @return Othrographic projection matrix.
-        */
-       static SIMD_INLINE IMatrix4x4<T> createOrtho(T left, T right, T bottom, T top, T zNear, T zFar)
-       {
-
-           const T invWidth = 1.0 / (right  - left);
-           const T invHeight = 1.0 / (top - bottom);
-           const T invDepth = 1.0 / (zFar - zNear);
-
-           IMatrix4x4<T> ret;
-
-           ret.mRows[0][0] =  2 * invWidth;
-           ret.mRows[1][1] =  2 * invHeight;
-           ret.mRows[2][2] = -2 * invDepth;
-
-           ret.mRows[3][0] = -(right + left) * invWidth;
-           ret.mRows[3][1] = -(top + bottom) * invHeight;
-           ret.mRows[3][2] = -(zFar + zNear) * invDepth;
-
-           return ret;
-       }
 
 
 

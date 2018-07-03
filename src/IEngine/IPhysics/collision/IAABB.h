@@ -7,7 +7,7 @@ namespace IPhysics
 {
 
 
-// Class AABB
+// Class IAABB
 /**
  * This class represents a bounding volume of type "Axis Aligned
  * Bounding Box". It's a box where all the edges are always aligned

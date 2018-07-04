@@ -1,6 +1,38 @@
+ /********************************************************************************
+ *
+ * ILine3D.h
+ *
+ * IMath : 3d_math library,
+ * Copyright (c)  *
+ * Created on: 3 July. 2018 г.
+ * Author: werasaimon                                     *
+ *********************************************************************************
+ *                                                                               *
+ * This software is provided 'as-is', without any express or implied warranty.   *
+ * In no event will the authors be held liable for any damages arising from the  *
+ * use of this software.                                                         *
+ *                                                                               *
+ * Permission is granted to anyone to use this software for any purpose,         *
+ * including commercial applications, and to alter it and redistribute it        *
+ * freely, subject to the following restrictions:                                *
+ *                                                                               *
+ * 1. The origin of this software must not be misrepresented; you must not claim *
+ *    that you wrote the original software. If you use this software in a        *
+ *    product, an acknowledgment in the product documentation would be           *
+ *    appreciated but is not required.                                           *
+ *                                                                               *
+ * 2. Altered source versions must be plainly marked as such, and must not be    *
+ *    misrepresented as being the original software.                             *
+ *                                                                               *
+ * 3. This notice may not be removed or altered from any source distribution.    *
+ *                                                                               *
+ ********************************************************************************/
+
 #ifndef ILINE3D_H
 #define ILINE3D_H
 
+
+#include "iFunc.h"
 #include "IVector3D.h"
 #include "IQuaternion.h"
 #include "IMatrix3x3.h"
@@ -46,9 +78,9 @@ public:
       //-----------------------------------------------------------------------------
       ILine3D& operator=(const ILine3D& other)
       {
-         // if same object
-         if ( this == &other )
-          return *this;
+//         // if same object
+//         if ( this == &other )
+//          return *this;
 
           mOrigin = other.mOrigin;
           mDirection = other.mDirection;
@@ -200,7 +232,7 @@ public:
 
              T denom = a*c - b*b;
 
-             if ( IsZero(denom) )
+             if ( IsZero<T>(denom) )
              {
                  point0 = line0.mOrigin;
                  point1 = line1.mOrigin + (e/c)*line1.mDirection;

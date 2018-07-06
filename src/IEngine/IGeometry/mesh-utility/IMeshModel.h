@@ -13,9 +13,76 @@
 #include "../transform/IObject3D.h"
 #include "ITexture2D.h"
 
+
+#include "AABB.h"
+
 namespace IGeometry
 {
 
+
+class IGeometryModel : public IObject3D
+{
+
+    gAABB mInitAABB;
+
+public:
+
+    IGeometryModel()
+    :IObject3D()
+    {
+    }
+
+    ~IGeometryModel()
+    {
+
+    }
+
+    gAABB getWorldAABB() const
+    {
+
+        // Get the local bounds in x,y and z direction
+        IVector3 minBounds = mInitAABB.getMin();
+        IVector3 maxBounds = mInitAABB.getMax();
+
+        // Scale size AABB local
+        minBounds *= 1.04;
+        maxBounds *= 1.04;
+
+
+        // Rotate the local bounds according to the orientation of the body
+        IMatrix3x3 worldAxis =  (mTransformMatrix.getRotMatrix()).getAbsoluteMatrix();
+
+        IVector3   worldMinBounds(worldAxis.getRow(0).dot(minBounds),
+                                  worldAxis.getRow(1).dot(minBounds),
+                                  worldAxis.getRow(2).dot(minBounds));
+
+        IVector3   worldMaxBounds(worldAxis.getRow(0).dot(maxBounds),
+                                  worldAxis.getRow(1).dot(maxBounds),
+                                  worldAxis.getRow(2).dot(maxBounds));
+
+
+        // Compute the minimum and maximum coordinates of the rotated extents
+        IVector3 minCoordinates = mTransformMatrix.getCoords() + worldMinBounds;
+        IVector3 maxCoordinates = mTransformMatrix.getCoords() + worldMaxBounds;
+
+
+        // Update the AABB with the new minimum and maximum coordinates
+        return gAABB(minCoordinates , maxCoordinates);
+    }
+
+
+
+protected:
+
+
+    void InitAxisAlignedBoundingBox( const IVector3& _min ,
+                                     const IVector3& _max )
+    {
+        mInitAABB.setMin(_min);
+        mInitAABB.setMax(_max);
+    }
+
+};
 
 
 typedef unsigned int uint;
@@ -24,7 +91,7 @@ typedef unsigned int uint;
 // Class Mesh
 // This class represents a 3D triangular mesh
 // object that can be loaded from an OBJ file for instance.
-class IMeshModel : public IObject3D
+class IMeshModel : public IGeometryModel
 {
 
 
@@ -79,6 +146,16 @@ class IMeshModel : public IObject3D
 
         // Compute the tangents of the IMeshModel
         void calculateTangents();
+
+
+              // Calculate for Initilization the bounding box of the IMeshModel
+              void InitBoundingBox();
+
+
+              // Calculate the bounding box of the IMeshModel
+              virtual void calculateLocalBoundingBox(IVector3& min, IVector3& max) const;
+
+
 
         // Calculate the bounding box of the IMeshModel
         void calculateBoundingBox(IVector3& min, IVector3& max) const;

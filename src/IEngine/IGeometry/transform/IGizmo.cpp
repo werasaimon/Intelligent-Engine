@@ -4,11 +4,16 @@
 namespace IGeometry
 {
 
+std::map<int, IMatrix4x4> IGizmo::outputTransforms() const
+{
+    return mOutputTransforms;
+}
+
 IGizmo::IGizmo()
 {
 }
 
-    bool IGizmo::IntersectRayToSphere(IVector3 rayOrigin, IVector3 rayDir, IVector3 center, float radius, float &t, IVector3 &q)
+bool IGizmo::IntersectRayToSphere(IVector3 rayOrigin, IVector3 rayDir, IVector3 center, float radius, float &t, IVector3 &q)
     {
         IVector3 m = rayOrigin - center;
         float b = dot(m, rayDir);

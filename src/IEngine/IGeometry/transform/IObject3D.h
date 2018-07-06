@@ -129,18 +129,17 @@ inline void IObject3D::rotateLocal(const IVector3& axis, float angle)
 
 /**/
 // Rotate the object around a world-space point
-inline void IObject3D::rotateAroundWorldPoint(const IVector3& axis, float angle,
-                                             const IVector3& worldPoint)
+inline void IObject3D::rotateAroundWorldPoint(const IVector3& axis, float angle, const IVector3& worldPoint)
 {
-    mTransformMatrix =   IMatrix4x4::createTranslation( worldPoint) * IMatrix4x4::createRotationAxis(axis, angle)
-                       * IMatrix4x4::createTranslation(-worldPoint) * mTransformMatrix;
+    mTransformMatrix =   IMatrix4x4::createTranslation( worldPoint)  *
+                         IMatrix4x4::createRotationAxis(axis, angle) *
+                         IMatrix4x4::createTranslation(-worldPoint)  * mTransformMatrix;
 }
 
 
 
 // Rotate the object around a local-space point
-inline void IObject3D::rotateAroundLocalPoint(const IVector3& axis, float angle,
-                                              const IVector3& worldPoint)
+inline void IObject3D::rotateAroundLocalPoint(const IVector3& axis, float angle, const IVector3& worldPoint)
 {
     // Convert the world point into the local coordinate system
     IVector3 localPoint = mTransformMatrix.getInverse() * worldPoint;

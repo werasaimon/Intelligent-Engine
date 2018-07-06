@@ -12,6 +12,8 @@ class ICamera : public IObject3D
 
         ICamera();
 
+
+        void ProjectionOrthoMatrix(float left, float  right , float buttom , float top , float NearPlane, float FarPlane);
         void ProjectionPerspectiveMatrix(float  FieldOfView, float  aspect, float  NearPlane, float  FarPlane);
         void LookAt(const IVector3& eye, const IVector3& center, const IVector3& up);
 
@@ -21,12 +23,15 @@ class ICamera : public IObject3D
 
         float  getAspect() const;
         float  getNearPlane() const;
-        float  getFarPlane() const;
+        float  getFarPlane() const;/////
 
 
         IVector3 getEye() const;
         IVector3 getCenter() const;
         IVector3 getUp() const;
+
+
+        IVector3 getConverPointInPlaneCamera( const IVector2& _point ) const;
 
 protected:
 

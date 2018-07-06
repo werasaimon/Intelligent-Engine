@@ -5,8 +5,8 @@ namespace IGeometry
 
 
 // Constructor
-IMeshModel::IMeshModel():
-IObject3D()
+IMeshModel::IMeshModel()
+    //: IGeometryModel()
 {
 
 }
@@ -124,6 +124,58 @@ void IMeshModel::calculateTangents()
         }
     }
 }
+
+
+// Calculate the bounding box of the IMeshModel
+void IMeshModel::calculateLocalBoundingBox(IVector3& min, IVector3& max) const
+{
+
+    // If the IMeshModel contains vertices
+    if (!mVertices.empty())
+    {
+
+        min = mVertices[0];
+        max = mVertices[0];
+
+        std::vector<IVector3>::const_iterator  it(mVertices.begin());
+
+        // For each vertex of the IMeshModel
+        for (; it != mVertices.end(); ++it)
+        {
+
+            if( (*it).x < min.x ) min.x = (*it).x;
+            else if ( (*it).x > max.x ) max.x = (*it).x;
+
+            if( (*it).y < min.y ) min.y = (*it).y;
+            else if ( (*it).y > max.y ) max.y = (*it).y;
+
+            if( (*it).z < min.z ) min.z = (*it).z;
+            else if ( (*it).z > max.z ) max.z = (*it).z;
+        }
+    }
+    else
+    {
+        std::cerr << "Error : Impossible to calculate the bounding box of the IMeshModel because there" <<
+                    "are no vertices !" << std::endl;
+        assert(false);
+    }
+}
+
+void IMeshModel::InitBoundingBox()
+{
+    IVector3 min;
+    IVector3 max;
+
+    // Calculation axis-aligned bounding box
+    calculateLocalBoundingBox(min,max);
+
+    // Initilization  axis-aligned bounding box
+    InitAxisAlignedBoundingBox(min,max);
+
+}
+
+
+
 
 // Calculate the bounding box of the IMeshModel
 void IMeshModel::calculateBoundingBox(IVector3& min, IVector3& max) const

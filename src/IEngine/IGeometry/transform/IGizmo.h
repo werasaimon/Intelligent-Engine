@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <list>
+#include <vector>
+#include <map>
 using namespace std;
 
 namespace IGeometry
@@ -29,6 +31,7 @@ struct DrawLineSegment
     IVector3  mPoint1;
     IVector3  mPoint2;
 };
+
 
 struct DrawVertex
 {
@@ -130,6 +133,12 @@ struct Context
     IMatrix4x4 mMatViewCamera;
     IMatrix4x4 mMatInitModel;
 
+    //std::vector<IMatrix4x4> mMatrixModelsInits;
+
+    //std::map< int , IMatrix4x4 > mMapModelsMatrixInits;
+
+    std::map< int , IMatrix4x4 > mMapModelsMatrixInits;
+
     TRay mRayInit;
     TRay mRayMove;
 
@@ -165,6 +174,7 @@ class IGizmo : public IObject3D
      IVector3 old_dir;
      //---------------------------//
 
+     std::map< int , IMatrix4x4 > mOutputTransforms;
 
   public:
 
@@ -174,21 +184,43 @@ class IGizmo : public IObject3D
 
      void Manipulate( const Context& gContext, IDrawList* DrawList = NULL )
      {
+
+         IVector3 CenterPivot = IVector3(0,0,0) * gContext.mMatInitModel;
+
+//         if(!gContext.mMapModelsMatrixInits.empty())
+//         {
+//             IMatrix4x4 InterpolateMatrix;
+//             InterpolateMatrix.setToZero();
+//             for( auto it : gContext.mMapModelsMatrixInits )
+//             {
+//                 InterpolateMatrix = InterpolateMatrix + it.second;
+//             }
+//             InterpolateMatrix = InterpolateMatrix / float(gContext.mMapModelsMatrixInits.size());
+//             CenterPivot = IVector3(0,0,0) * InterpolateMatrix;
+//         }
+
+        if(!mOutputTransforms.empty())
+        {
+            mOutputTransforms.clear();
+        }
+
          switch (gContext._TransformMode_)
          {
-             case   Context::Move: HandleMove( gContext , DrawList , gContext._CoordinatMode_);  break;
-             case  Context::Scale: HandleScale( gContext , DrawList , gContext._CoordinatMode_);  break;
-             case Context::Rotate: HandleRotate( gContext , DrawList , gContext._CoordinatMode_);  break;
+             case   Context::Move: HandleMove(   CenterPivot , gContext , DrawList , gContext._CoordinatMode_);  break;
+             case  Context::Scale: HandleScale(  CenterPivot , gContext , DrawList , gContext._CoordinatMode_);  break;
+             case Context::Rotate: HandleRotate( CenterPivot , gContext , DrawList , gContext._CoordinatMode_);  break;
          }
      }
 
 
-   protected:
+     std::map<int, IMatrix4x4> outputTransforms() const;
+
+protected:
 
 
      //=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
 
-      void HandleRotate( const Context& gContext , IDrawList* DrawList , Context::GizmoCoordinatMode Mode )
+      void HandleRotate( const IVector3& CenterPivot , const Context& gContext , IDrawList* DrawList , Context::GizmoCoordinatMode Mode )
       {
 
           if(gContext.mMousePressClick)
@@ -198,9 +230,18 @@ class IGizmo : public IObject3D
           }
 
 
+          if(!gContext.mMapModelsMatrixInits.empty())
+          {
+              for( auto it : gContext.mMapModelsMatrixInits )
+              {
+                  mOutputTransforms[it.first] = it.second;
+              }
+          }
+
+
           //IMatrix4x4 RotateMatrixResult = IMatrix4x4::IDENTITY;
           mTransformMatrix =  gContext.mMatInitModel;
-          IVector3  origin =  IVector3(0,0,0) * gContext.mMatInitModel;
+          IVector3  origin =  CenterPivot;//IVector3(0,0,0) * gContext.mMatInitModel;
 
 
           /**/
@@ -387,9 +428,41 @@ class IGizmo : public IObject3D
                   if( AxisRotationSelected.length() > 0.0001f )
                   {
 
-                      //rotateAroundWorldPoint(mTransformMatrix.getRotMatrix().getTranspose() * AxisRotationSelected,-(length_angle),origin);
+                       //rotateAroundWorldPoint(mTransformMatrix.getRotMatrix().getTranspose() * AxisRotationSelected,-(length_angle),origin);
                        mTransformMatrix = mTransformMatrix * IMatrix4x4::createRotationAxis( AxisRotationSelected , length_angle );
 
+
+                       if(!gContext.mMapModelsMatrixInits.empty())
+                       {
+                           for( auto it :  gContext.mMapModelsMatrixInits )
+                           {
+
+//                               IVector3 center = (it.second * IVector3(0,0,0));
+//                               IVector3 localPoint = origin;
+//                               IMatrix3x3 ortho = mTransformMatrix.getRotMatrix();
+//                               ortho.OrthoNormalize();
+//                               IVector3 AxisRotate = AxisRotationSelected;
+//                               IMatrix4x4 RelativeOffsetMatrix =  IMatrix4x4::createTranslation( localPoint )  *
+//                                                                  IMatrix4x4::createRotationAxis( -AxisRotate, -length_angle) *
+//                                                                  IMatrix4x4::createTranslation( localPoint ).getInverse();
+
+//                               mOutputTransforms[it.first] = RelativeOffsetMatrix * mOutputTransforms[it.first];
+
+
+
+
+
+                               //------------------------------------------------------//
+                               IVector3 point = (it.second * IVector3(0,0,0));
+                               IVector3 newPosition =  IMatrix4x4::createRotationAxis( AxisRotationSelected , length_angle ) * (point - origin) + origin;
+                               mOutputTransforms[it.first] = (IMatrix4x4::createTranslation(point).getInverse() *
+                                                              IMatrix4x4::createTranslation(newPosition)) *
+                                                              mOutputTransforms[it.first] *
+                                                              IMatrix4x4::createRotationAxis( AxisRotationSelected , length_angle );
+                               //------------------------------------------------------//
+
+                           }
+                       }
 
                       if(DrawList != NULL)
                       {
@@ -424,10 +497,20 @@ class IGizmo : public IObject3D
       //=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
 
 
-      void HandleScale( const Context& gContext , IDrawList* DrawList , Context::GizmoCoordinatMode Mode )
+      void HandleScale( const IVector3& CenterPivot , const Context& gContext , IDrawList* DrawList , Context::GizmoCoordinatMode Mode )
       {
+
+          if(!gContext.mMapModelsMatrixInits.empty())
+          {
+              for( auto it : gContext.mMapModelsMatrixInits )
+              {
+                  mOutputTransforms[it.first] = it.second;
+              }
+          }
+
+
           mTransformMatrix = gContext.mMatInitModel;
-          IVector3 origin =  IVector3(0,0,0) * gContext.mMatInitModel;
+          IVector3 origin =  CenterPivot;//IVector3(0,0,0) * gContext.mMatInitModel;
 
 
           /**/
@@ -527,6 +610,14 @@ class IGizmo : public IObject3D
 
                   // mTransformMatrix = mTransformMatrix * IMatrix4x4::createTranslation( (b - a)  );
                   mTransformMatrix = mTransformMatrix * IMatrix4x4::createScale( (b - a).length() );
+
+                  if(!gContext.mMapModelsMatrixInits.empty())
+                  {
+                      for( auto it : gContext.mMapModelsMatrixInits )
+                      {
+                          mOutputTransforms[it.first] = mOutputTransforms[it.first] * IMatrix4x4::createScale( (b - a).length() );
+                      }
+                  }
               }
               else
               {
@@ -590,6 +681,37 @@ class IGizmo : public IObject3D
                               IVector3 ScaleAxis = mTransformMatrix.getRotMatrix().getTranspose() * AxisMoving;
                               scaleAroundWorldPoint( ScaleAxis.normalized() , RelativOffset.length() * Sign * 5.f , origin );
 
+
+                              if(!gContext.mMapModelsMatrixInits.empty())
+                              {
+                                  for( auto it : gContext.mMapModelsMatrixInits )
+                                  {
+
+//                                      IMatrix3x3 R = mOutputTransforms[it.first].getRotMatrix();
+//                                      R.OrthoNormalize();
+//                                      ScaleAxis = R.getTranspose() * ScaleAxis;
+
+                                     // origin = IMatrix4x4::createScaleAroundAxis(ScaleAxis.normalized() , RelativOffset.length() * Sign * 5.f) * origin;
+                                      IMatrix4x4 RelativeOffsetMatrix =  /*IMatrix4x4::createTranslation( origin) */
+                                                                         IMatrix4x4::createScaleAroundAxis(AxisMoving.normalized() , RelativOffset.length() * Sign * 5.f);// *
+                                                                         /*IMatrix4x4::createTranslation(-origin);*/
+
+                                      //RelativeOffsetMatrix = RelativeOffsetMatrix;
+
+                                      IVector3 point = (it.second * IVector3(0,0,0));
+                                      IVector3 newPosition =  RelativeOffsetMatrix  * (point - origin) + origin;
+
+                                      mOutputTransforms[it.first] = (IMatrix4x4::createTranslation(point).getInverse() * IMatrix4x4::createTranslation(newPosition)) *
+                                                                     ( mOutputTransforms[it.first] * RelativeOffsetMatrix) ;
+
+
+
+
+
+                                  }
+                              }
+
+
                           }
                       }
 
@@ -602,14 +724,27 @@ class IGizmo : public IObject3D
     //=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-//
 
 
-     void HandleMove( const Context& gContext , IDrawList* DrawList ,  Context::GizmoCoordinatMode Mode )
+     void HandleMove( const IVector3& CenterPivot , const Context& gContext , IDrawList* DrawList ,  Context::GizmoCoordinatMode Mode )
      {
+
+         if(!gContext.mMapModelsMatrixInits.empty())
+         {
+             for( auto it : gContext.mMapModelsMatrixInits )
+             {
+                 mOutputTransforms[it.first] = it.second;
+             }
+         }
+
 
          mTransformMatrix = gContext.mMatInitModel;
 
          /**/
+         IVector3 origin     =   CenterPivot;//IVector3(0,0,0) * gContext.mMatInitModel;
 
-         IVector3 origin     =   IVector3(0,0,0) * gContext.mMatInitModel;
+
+
+
+
          IVector3 pos_cam    =   gContext.mMatViewCamera.getInverse() * IVector3(0,0,0);;
          IVector3 dir_look_n = ( gContext.mMatViewCamera.getInverse() * IVector3::Z ).normalized();
          IVector3 origin_cam =   pos_cam - dir_look_n * 1.5f;
@@ -677,6 +812,9 @@ class IGizmo : public IObject3D
              DrawList->AddLine( nX1 , nX2 , IColor(1,0,0,0) );
              DrawList->AddLine( nY1 , nY2 , IColor(0,1,0,0) );
              DrawList->AddLine( nZ1 , nZ2 , IColor(0,0,1,0) );
+
+
+             DrawList->AddVertex(origin , IColor(1,1,1,1) );
          }
 
 
@@ -701,8 +839,15 @@ class IGizmo : public IObject3D
              }
 
 
-             // mTransformMatrix = mTransformMatrix * IMatrix4x4::createTranslation( (b - a)  );
-             mTransformMatrix = IMatrix4x4::createTranslation( b - a) * mTransformMatrix;
+             mTransformMatrix = mTransformMatrix * IMatrix4x4::createTranslation( (b - a) );
+
+             if(!gContext.mMapModelsMatrixInits.empty())
+             {
+                 for( auto it : gContext.mMapModelsMatrixInits )
+                 {
+                     mOutputTransforms[it.first] = IMatrix4x4::createTranslation((b - a)) * mOutputTransforms[it.first];
+                 }
+             }
          }
          else
          {
@@ -763,7 +908,16 @@ class IGizmo : public IObject3D
 
                          }
 
-                         translateWorld( RelativOffset );
+
+                          mTransformMatrix = IMatrix4x4::createTranslation(RelativOffset) * mTransformMatrix;
+
+                         if(!gContext.mMapModelsMatrixInits.empty())
+                         {
+                                 for( auto it : gContext.mMapModelsMatrixInits )
+                                 {
+                                     mOutputTransforms[it.first] = IMatrix4x4::createTranslation(RelativOffset) * mOutputTransforms[it.first];
+                                 }
+                         }
 
                      }
                  }

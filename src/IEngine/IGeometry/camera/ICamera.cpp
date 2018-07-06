@@ -18,6 +18,16 @@ ICamera::ICamera()
   mProjectionMatrix.setToIdentity();
 }
 
+void ICamera::ProjectionOrthoMatrix(float left, float  right , float buttom , float top , float NearPlane, float FarPlane)
+{
+  mAspect    = 1.0;
+  mNearPlane = NearPlane;
+  mFarPlane  = FarPlane;
+
+  mProjectionMatrix.setToIdentity();
+  mProjectionMatrix = IMatrix4x4::createOrtho(left,right,buttom,top,NearPlane,FarPlane);
+}
+
 void ICamera::ProjectionPerspectiveMatrix(float  FieldOfView, float  aspect, float  NearPlane, float  FarPlane)
 {
   mAspect    = aspect;
@@ -25,8 +35,8 @@ void ICamera::ProjectionPerspectiveMatrix(float  FieldOfView, float  aspect, flo
   mFarPlane  = FarPlane;
 
   mProjectionMatrix.setToIdentity();
-  //mProjectionMatrix = IMatrix4x4::createPerspectiveFOV( FieldOfView , aspect , NearPlane , FarPlane);
   mProjectionMatrix = IMatrix4x4::createPerspective( FieldOfView , aspect , NearPlane , FarPlane );
+  //mProjectionMatrix = IMatrix4x4::createPerspectivFOV(FieldOfView , aspect , NearPlane , FarPlane );
 }
 
 void ICamera::LookAt(const IVector3 &eye, const IVector3 &center, const IVector3 &up)
@@ -77,6 +87,14 @@ IVector3 ICamera::getCenter() const
 IVector3 ICamera::getUp() const
 {
   return mUp;
+}
+
+IVector3 ICamera::getConverPointInPlaneCamera(const IVector2 &_point) const
+{
+  IVector3   origin  = mEye;
+  IMatrix3x3 rotate  = mTransformMatrix.getRotMatrix();
+  IMatrix4x4 project = mProjectionMatrix;
+  return  origin + (IGeometry::IVector3(_point.x,_point.y,-1.f) * project.getInverse()) * rotate;
 }
 
 }

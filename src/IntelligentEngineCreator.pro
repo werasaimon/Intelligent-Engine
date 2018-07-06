@@ -108,7 +108,8 @@ SOURCES +=\
     ICreatorScene/IScene.cpp \
     ICreatorScene/ICreatorScene.cpp \
     IEngine/IGeometry/math/IRayCast.cpp \
-    ieditglwidget.cpp
+    ieditglwidget.cpp \
+    IEngine/IGeometry/mesh-utility/AABB.cpp
 
 HEADERS  += widgetcreatorengine.h \
     IEngine/IGeometry/camera/ICamera.h \
@@ -181,6 +182,7 @@ HEADERS  += widgetcreatorengine.h \
     ICreatorScene/IScene.h \
     ICreatorScene/ICreatorScene.h \
     IEngine/IGeometry/math/IRayCast.h \
-    ieditglwidget.h
+    ieditglwidget.h \
+    IEngine/IGeometry/mesh-utility/AABB.h
 
 FORMS    += widgetcreatorengine.ui

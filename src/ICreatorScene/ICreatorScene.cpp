@@ -3,9 +3,13 @@
 #include <GL/gl.h>
 #include <Qt>
 
+//#include <GL/freeglut.h>
+
 
 #include <iostream>
 using namespace std;
+
+
 
 namespace
 {
@@ -41,6 +45,77 @@ namespace
     }
 
 
+
+    void DrawCube()
+    {
+        glBegin(GL_LINE_LOOP);
+            // top
+            glColor3f(1.0f, 0.0f, 0.0f);
+            glNormal3f(0.0f, 1.0f, 0.0f);
+            glVertex3f(-0.5f, 0.5f, 0.5f);
+            glVertex3f(0.5f, 0.5f, 0.5f);
+            glVertex3f(0.5f, 0.5f, -0.5f);
+            glVertex3f(-0.5f, 0.5f, -0.5f);
+
+            glEnd();
+
+            glBegin(GL_LINE_LOOP);
+            // front
+            glColor3f(0.0f, 1.0f, 0.0f);
+            glNormal3f(0.0f, 0.0f, 1.0f);
+            glVertex3f(-0.5f, -0.5f, 0.5f);
+            glVertex3f(0.5f, -0.5f, 0.5f);
+            glVertex3f(0.5f, 0.5f, 0.5f);
+            glVertex3f(-0.5f, 0.5f, 0.5f);
+
+            glEnd();
+
+            glBegin(GL_LINE_LOOP);
+            // right
+            glColor3f(0.0f, 0.0f, 1.0f);
+            glNormal3f(1.0f, 0.0f, 0.0f);
+            glVertex3f(0.5f, -0.5f, 0.5f);
+            glVertex3f(0.5f, -0.5f, -0.5f);
+            glVertex3f(0.5f, 0.5f, -0.5f);
+            glVertex3f(0.5f, 0.5f, 0.5f);
+
+            glEnd();
+
+            glBegin(GL_LINE_LOOP);
+            // left
+            glColor3f(0.0f, 0.0f, 0.5f);
+            glNormal3f(-1.0f, 0.0f, 0.0f);
+            glVertex3f(-0.5f, -0.5f, 0.5f);
+            glVertex3f(-0.5f, 0.5f, 0.5f);
+            glVertex3f(-0.5f, 0.5f, -0.5f);
+            glVertex3f(-0.5f, -0.5f, -0.5f);
+
+            glEnd();
+
+            glBegin(GL_LINE_LOOP);
+            // bottom
+            glColor3f(0.5f, 0.0f, 0.0f);
+            glNormal3f(0.0f, -1.0f, 0.0f);
+            glVertex3f(-0.5f, -0.5f, 0.5f);
+            glVertex3f(0.5f, -0.5f, 0.5f);
+            glVertex3f(0.5f, -0.5f, -0.5f);
+            glVertex3f(-0.5f, -0.5f, -0.5f);
+
+            glEnd();
+
+            glBegin(GL_LINE_LOOP);
+            // back
+            glColor3f(0.0f, 0.5f, 0.0f);
+            glNormal3f(0.0f, 0.0f, -1.0f);
+            glVertex3f(0.5f, 0.5f, -0.5f);
+            glVertex3f(0.5f, -0.5f, -0.5f);
+            glVertex3f(-0.5f, -0.5f, -0.5f);
+            glVertex3f(-0.5f, 0.5f, -0.5f);
+
+            glEnd();
+    }
+
+
     template<class T>
     T* remove(std::vector<T*>* v, T* val)
     {
@@ -56,13 +131,73 @@ namespace
 
 
      IGeometry::IVector3 mousePoint;
-
      IGeometry::IVector3 HitPoint;
+     IGeometry::IVector2 PPPMouse;
+     IGeometry::IVector2 PPPick;
 
     bool isSelected = false;
-
-
     bool m_mouse_is = false;
+
+
+
+    // Returns: INTERSECT : 0
+    //          INSIDE : 1
+    //          OUTSIDE : 2
+
+    enum INTERSECTION { INTERSECT = 0 , INSIDE = 1  , OUTSIDE = 2 };
+
+    int FrustumAABBIntersect(IGeometry::IPlane *planes, IGeometry::IVector3 &mins, IGeometry::IVector3 &maxs)
+    {
+       int    ret =  INTERSECT;
+       IGeometry::IVector3 vmin, vmax;
+
+       for(int i = 0; i < 6; ++i)
+       {
+          // X axis
+          if(planes[i].GetNormal().x > 0)
+          {
+             vmin.x = mins.x;
+             vmax.x = maxs.x;
+          }
+          else
+          {
+             vmin.x = maxs.x;
+             vmax.x = mins.x;
+          }
+          // Y axis
+          if(planes[i].GetNormal().y > 0)
+          {
+             vmin.y = mins.y;
+             vmax.y = maxs.y;
+          }
+          else
+          {
+             vmin.y = maxs.y;
+             vmax.y = mins.y;
+          }
+          // Z axis
+          if(planes[i].GetNormal().z > 0)
+          {
+             vmin.z = mins.z;
+             vmax.z = maxs.z;
+          }
+          else
+          {
+             vmin.z = maxs.z;
+             vmax.z = mins.z;
+          }
+
+          if(planes[i].GetNormal().dot(vmin) + planes[i].GetOffset() >  0)  return OUTSIDE;
+          if(planes[i].GetNormal().dot(vmax) + planes[i].GetOffset() >= 0) ret = INTERSECT;
+       }
+       return ret;
+    }
+
+
+
+
+    IGeometry::IVector3 point_mouse_on_click;
+    IGeometry::IVector3 point_mouse_off_click;
 
 }
 
@@ -87,9 +222,10 @@ bool ICreatorScene::initialization()
     float aspect = width / height;
     float zNear  = 1.0;
     float zFar   = 1024;
-    float fov    = 45.0;
+    float fov    = 30;
 
     mCamera.ProjectionPerspectiveMatrix( fov , aspect , zNear , zFar );
+   //mCamera.ProjectionOrthoMatrix(-mWidth, mWidth, -mHeight, mHeight,zNear,zFar);
 
     mEye    =  IGeometry::IVector3(0,1,-10);
     mCenter =  IGeometry::IVector3(0,0,0);
@@ -103,10 +239,9 @@ bool ICreatorScene::initialization()
     mCamera.translateWorld( IGeometry::IVector3(0,0,-10) );
 
     //===================================================//
-
     mSelectedIndexID = -1;
 
-    for (int i = 0; i < 10; ++i)
+    for (int i = 0; i < 1; ++i)
     {
         IGeometry::IVector3 pos( 5-rand()%10 ,
                                  5-rand()%10 ,
@@ -116,11 +251,13 @@ bool ICreatorScene::initialization()
                                  5-rand()%10 ,
                                  5-rand()%10);
 
+
         IGeometry::IVector3 halfSize(1,1,1);
         IGeometry::IMeshModel *ModelBox = new IGeometry::IMeshCreateBox( halfSize );
         ModelBox->translateWorld(pos);
         if(i >5 ) ModelBox->rotateWorld( rot.normalized() , rot.length() );
 
+        ModelBox->InitBoundingBox();
 
 //        IGeometry::IVector3 origin = ModelBox->getOrigin();
 //        IGeometry::IQuaternion Quat;
@@ -138,6 +275,7 @@ bool ICreatorScene::initialization()
     }
 
 
+
     GizmoContext._CoordinatMode_ = IGeometry::Context::World;
     GizmoContext._TransformMode_ = GizmoContext.Move;
 
@@ -149,13 +287,59 @@ void ICreatorScene::render(float FrameTime)
 {
     glViewport(0, 0, mWidth , mHeight );
 
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+
+//    IGeometry::IVector2 sq_1 = PPPMouse;
+//    IGeometry::IVector2 sq_2 = PPPick;
+
+//     glPushMatrix();
+//    // glTranslatef(0,0,2);
+//     glPointSize(10);
+//     glBegin(GL_POINTS);
+//     glColor3f(0,1,0);
+//     glVertex3f(sq_1.x , sq_1.y , -1.0);
+//     glVertex3f(sq_2.x , sq_2.y , -1.0);
+//     glEnd();
+//     glPopMatrix();
+
+
+
+
+//     glPushMatrix();
+//     glColor3f(1,0,0);
+//     glBegin(GL_LINES);
+
+//     glVertex2f(sq_1.x , sq_1.y);
+//     glVertex2f(sq_2.x , sq_1.y);
+//     glVertex2f(sq_1.x , sq_2.y);
+//     glVertex2f(sq_2.x , sq_2.y);
+
+//     glVertex2f(sq_2.x , sq_1.y);
+//     glVertex2f(sq_2.x , sq_2.y);
+//     glVertex2f(sq_1.x , sq_1.y);
+//     glVertex2f(sq_1.x , sq_2.y);
+
+//     glEnd();
+//     glPopMatrix();
+
+
+
+    //------------------------------------------------//
+
+
     mCamera.LookAt( mEye , mCenter , mUp  );
 
-
-
-
-
     glLoadIdentity();
+
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixf(mCamera.getProjectionMatrix().getData());
 
@@ -163,10 +347,12 @@ void ICreatorScene::render(float FrameTime)
     glLoadMatrixf(mCamera.getTransformMatrix().getData());
 
 
+
     glEnable(GL_DEPTH_TEST);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_CULL_FACE);
 
+
+  // glLoadIdentity();
 
 
     //----------------------------------------------//
@@ -182,8 +368,6 @@ void ICreatorScene::render(float FrameTime)
     glEnd();
     glColor3f(1,1,1);
     glPopMatrix();
-
-
 
 
 //    if( mSelectedIndexID >= 0 )
@@ -225,8 +409,23 @@ void ICreatorScene::render(float FrameTime)
         M.setPosition( mGMeshModels[i]->getTransformMatrix().getCoords() );
         M.setRotation( mGMeshModels[i]->getTransformMatrix().getRotMatrix().getTranspose() );
 
+        IGeometry::IMatrix4x4 MCam = IGeometry::IMatrix4x4::createTranslation(-mCamera.getEye());
+
+        IGeometry::IMatrix4x4 Projection = mCamera.getProjectionMatrix();
+
+        glMultMatrixf( (Projection.getTranspose().getInverse() * mCamera.getViewMatrix())  );
         glMultMatrixf( M );
         DrawMesh(mGMeshModels[i]);
+        glPopMatrix();
+
+        glPushMatrix();
+        const IGeometry::IVector3 pos   = mGMeshModels[i]->getTransformMatrix().getCoords();
+        const IGeometry::IVector3 scale = mGMeshModels[i]->getWorldAABB().getExtent();
+
+        glTranslatef( pos.x , pos.y , pos.z );
+        glScalef( scale.x , scale.y  , scale.z );
+        //glutWireCube(1);
+        DrawCube();
         glPopMatrix();
     }
 
@@ -249,9 +448,10 @@ void ICreatorScene::render(float FrameTime)
 
     glPushMatrix();
      glColor3f(1,1,0);
-     glPointSize(2.0);
+     glPointSize(6.0);
      glBegin(GL_POINTS);
-     glVertex3f(mousePoint.x,mousePoint.y,mousePoint.z);
+     glColor3f(0,1,0);
+     glVertex3fv(mousePoint);
      glEnd();
      glColor3f(1,1,1);
     glPopMatrix();
@@ -268,8 +468,7 @@ void ICreatorScene::render(float FrameTime)
 
 
 
-
-    if( mSelectedIndexID >= 0 )
+    if( mSelectedIndexID >= 0 && mMouseButton != Qt::MouseButton::MidButton )
     {
         for ( auto it = GizmoDrawList.mLineSegments.begin(); it != GizmoDrawList.mLineSegments.end(); ++it )
         {
@@ -283,6 +482,19 @@ void ICreatorScene::render(float FrameTime)
             glLineWidth(1);
             glPopMatrix();
         }
+
+
+        for ( auto it = GizmoDrawList.mVertexes.begin(); it != GizmoDrawList.mVertexes.end(); ++it )
+        {
+            glPushMatrix();
+            glPointSize(10);
+            glBegin(GL_POINT);
+             glColor4fv(it->mColor);
+             glVertex3fv(it->mPosition);
+            glEnd();
+            glLineWidth(1);
+            glPopMatrix();
+        }
     }
 
 
@@ -291,6 +503,18 @@ void ICreatorScene::render(float FrameTime)
 
 void ICreatorScene::update()
 {
+//    if(mShiftKey)
+//    {
+//        // cout<< "Yes//" <<endl;
+//    }
+//    else
+//    {
+//        // cout<< "No//" <<endl;
+//        mSetSelectedIndexIds.clear();
+//        GizmoManipulator.outputTransforms().clear();
+//    }
+
+
     GizmoContext.mMatViewCamera = mCamera.getViewMatrix();
 
     IGeometry::IMatrix4x4 M1;
@@ -310,7 +534,17 @@ void ICreatorScene::update()
 
         if(m_mouse_is)
         {
-            mGMeshModels[mSelectedIndexID]->setTransformMatrix(GizmoManipulator.getTransformMatrix());
+            if(!mShiftKey)
+            {
+                mGMeshModels[mSelectedIndexID]->setTransformMatrix(GizmoManipulator.getTransformMatrix());
+            }
+            else
+            {
+                for( auto it : GizmoManipulator.outputTransforms() )
+                {
+                    mGMeshModels[it.first]->setTransformMatrix(it.second);
+                }
+            }
         }
         //----------------------------------------------------------------------------------------//
     }
@@ -327,9 +561,11 @@ void ICreatorScene::resize(float width, float height)
     float aspect = mWidth / mHeight;
     float zNear  = 1.0;
     float zFar   = 1024;
-    float fov    = 45.0;
+    float fov    = 30;
+
 
     mCamera.ProjectionPerspectiveMatrix( fov , aspect , zNear , zFar );
+    // mCamera.ProjectionOrthoMatrix(-mWidth, mWidth, -mHeight, mHeight,zNear,zFar);
 }
 
 //-----------------------------------------------------//
@@ -363,8 +599,8 @@ void ICreatorScene::mouseMove(float x, float y, int button)
 
             //------------------------------------------//
             float aspect = mWidth / mHeight;
-            float m_x = ((mouseX / mWidth ) - 0.5f) * aspect * 0.834;
-            float m_y = ((mouseY / mHeight) - 0.5f) * 0.834;
+            float m_x = ((mouseX / mWidth ) - 0.5f) *  2.0;
+            float m_y = ((mouseY / mHeight) - 0.5f) * -2.0;
             //GizmoContext.mMouseMoveX = m_x;
             //GizmoContext.mMouseMoveY = m_y;
 
@@ -373,13 +609,10 @@ void ICreatorScene::mouseMove(float x, float y, int button)
             //GizmoManipulator.MouseMove(m_x,m_y,button,GizmoContext);
 
 
+            mousePoint = mCamera.getConverPointInPlaneCamera(IGeometry::IVector2(m_x,m_y));
 
-            //------------------------------------------//
 
-            IGeometry::IVector3      Eye = mCamera.getEye();
-            IGeometry::IMatrix3x3 RotCam = mCamera.getViewMatrix().getRotMatrix();
-
-            mousePoint = Eye + IGeometry::IVector3(m_x,-m_y,-1.f) * RotCam;
+            point_mouse_off_click = mousePoint;
 
 //            //------------------------------------------//
 //            UserRay.mRayMove.OriginPoint =  Eye;
@@ -387,12 +620,42 @@ void ICreatorScene::mouseMove(float x, float y, int button)
 //            UserRay.mRayMove.ClosetPoint =  Eye +  UserRay.mRayMove.Direction * 2000.0f;
 //            //------------------------------------------//
 
-
+            IGeometry::IVector3 Eye = mCamera.getEye();
             GizmoContext.mRayMove.OriginPoint =  Eye;
             GizmoContext.mRayMove.Direction   = (mousePoint - Eye).normalized();
             GizmoContext.mRayMove.ClosetPoint =  Eye +  GizmoContext.mRayMove.Direction * 2000.0f;
 
+
+            /**
+            if( mSelectedIndexID >= 0 && mGMeshModels[mSelectedIndexID] != NULL )
+            {
+                GizmoContext.mbUsing = m_mouse_is;
+
+                //----------------------------------------------------------------------------------------//
+                GizmoManipulator.Manipulate(GizmoContext , &GizmoDrawList);
+
+                if(m_mouse_is)
+                {
+                    if(GizmoManipulator.outputTransforms().empty())
+                    {
+                        mGMeshModels[mSelectedIndexID]->setTransformMatrix(GizmoManipulator.getTransformMatrix());
+                    }
+                    else
+                    {
+                        for( auto it : GizmoManipulator.outputTransforms() )
+                        {
+                            mGMeshModels[it.first]->setTransformMatrix(it.second);
+                        }
+                    }
+                }
+                //----------------------------------------------------------------------------------------//
+            }
+            /**/
+
         }
+
+
+
     }
 
 
@@ -418,39 +681,44 @@ void ICreatorScene::mousePress(float x, float y, int button)
 
         //------------------------------------------//
         float aspect = mWidth / mHeight;
-        float m_x = ((mouseX / mWidth ) - 0.5f) * aspect * 0.834;
-        float m_y = ((mouseY / mHeight) - 0.5f) * 0.834;
+        float m_x = ((mouseX / mWidth ) - 0.5f) *  2.0;
+        float m_y = ((mouseY / mHeight) - 0.5f) * -2.0;
         //GizmoContext.mMousePressX = m_x;
         //GizmoContext.mMousePressY = m_y;
 
 
+         mousePoint = mCamera.getConverPointInPlaneCamera(IGeometry::IVector2(m_x,m_y));
 
+          point_mouse_on_click = mousePoint;
+
+
+        if( !mShiftKey )
+        {
+            mSetSelectedIndexIds.clear();
+            GizmoContext.mMapModelsMatrixInits.clear();
+        }
 
         //------------------------------------------//
 
-        IGeometry::IVector3      Eye = mCamera.getEye();
-        IGeometry::IMatrix3x3 RotCam = mCamera.getViewMatrix().getRotMatrix();
-
-        GizmoContext.mMatViewCamera = mCamera.getViewMatrix();
-        //GizmoManipulator.MousePress(m_x,m_y,button,GizmoContext);
-
-
-        mousePoint = Eye + IGeometry::IVector3(m_x,-m_y,-1.f) * RotCam;
-
-//        //------------------------------------------//
-//        UserRay.mRayMove.OriginPoint  = UserRay.mRayInit.OriginPoint =  Eye;
-//        UserRay.mRayMove.Direction    = UserRay.mRayInit.Direction   = (mousePoint - Eye).normalized();
-//        UserRay.mRayMove.ClosetPoint  = UserRay.mRayInit.ClosetPoint =  Eye + UserRay.mRayMove.Direction * 2000.0f;
-//        //------------------------------------------//
 
 
 
-       GizmoContext.mRayMove.OriginPoint  = GizmoContext.mRayInit.OriginPoint =  Eye;
-       GizmoContext.mRayMove.Direction    = GizmoContext.mRayInit.Direction   = (mousePoint - Eye).normalized();
-       GizmoContext.mRayMove.ClosetPoint  = GizmoContext.mRayInit.ClosetPoint =  Eye + GizmoContext.mRayMove.Direction * 2000.0f;
+
+        //        //------------------------------------------//
+        //        UserRay.mRayMove.OriginPoint  = UserRay.mRayInit.OriginPoint =  Eye;
+        //        UserRay.mRayMove.Direction    = UserRay.mRayInit.Direction   = (mousePoint - Eye).normalized();
+        //        UserRay.mRayMove.ClosetPoint  = UserRay.mRayInit.ClosetPoint =  Eye + UserRay.mRayMove.Direction * 2000.0f;
+        //        //------------------------------------------//
 
 
-//        mSelectedIndexID  = -1;
+
+        IGeometry::IVector3  Eye = mCamera.getEye();
+        GizmoContext.mRayMove.OriginPoint  = GizmoContext.mRayInit.OriginPoint =  Eye;
+        GizmoContext.mRayMove.Direction    = GizmoContext.mRayInit.Direction   = (mousePoint - Eye).normalized();
+        GizmoContext.mRayMove.ClosetPoint  = GizmoContext.mRayInit.ClosetPoint =  Eye + GizmoContext.mRayMove.Direction * 2000.0f;
+
+
+        //        mSelectedIndexID  = -1;
 
         //------------------------------------------//
         IGeometry::IVector3 a =  Eye;
@@ -459,21 +727,21 @@ void ICreatorScene::mousePress(float x, float y, int button)
 
         /**
 
-    IGeometry::IVector3 Eye = mCamera.getEye();
-    IGeometry::IVector3 mouse_point = IGeometry::IVector3(m_x,m_y,1);
-    IGeometry::IVector3 cam_pos = Eye;
-    IGeometry::IVector3 cam_ray = Eye + (mouse_point - Eye).normalized() * 2000.f;
-    IGeometry::IRayCast RayCast( cam_pos , cam_ray );
+            IGeometry::IVector3 Eye = mCamera.getEye();
+            IGeometry::IVector3 mouse_point = IGeometry::IVector3(m_x,m_y,1);
+            IGeometry::IVector3 cam_pos = Eye;
+            IGeometry::IVector3 cam_ray = Eye + (mouse_point - Eye).normalized() * 2000.f;
+            IGeometry::IRayCast RayCast( cam_pos , cam_ray );
 
-    /**
+            /**
 
-    IGeometry::IVector3 rayOrigin;
-    IGeometry::IVector3 rayDir;
-    IGeometry::ComputeCameraRay( rayOrigin , rayDir , GizmoContext );
+            IGeometry::IVector3 rayOrigin;
+            IGeometry::IVector3 rayDir;
+            IGeometry::ComputeCameraRay( rayOrigin , rayDir , GizmoContext );
 
-    IGeometry::IRayCast RayCast( rayOrigin + rayDir * 100.f , rayOrigin);
+            IGeometry::IRayCast RayCast( rayOrigin + rayDir * 100.f , rayOrigin);
 
-    /**/
+        /**/
 
 
 //        IGeometry::IVector3 DirLookCam = RotCam * IGeometry::IVector3::Z;
@@ -543,8 +811,49 @@ void ICreatorScene::mousePress(float x, float y, int button)
         {
             cout<< mSelectedIndexID <<endl;
 
+            if( mShiftKey )
+            {
+                //mSelectedIndexIds[Mesh] = i;
+                mSetSelectedIndexIds.insert(mSelectedIndexID);
+            }
+
             GizmoContext.mMatInitModel = mGMeshModels[mSelectedIndexID]->getTransformMatrix();
+
+            /**/
+            if(mShiftKey)
+            {
+                GizmoContext.mMatInitModel.setToZero();
+                for( auto it = mSetSelectedIndexIds.begin(); it != mSetSelectedIndexIds.end(); ++it )
+                {
+                    GizmoContext.mMapModelsMatrixInits[*it] = mGMeshModels[*it]->getTransformMatrix();
+                    GizmoContext.mMatInitModel = mGMeshModels[*it]->getTransformMatrix() + GizmoContext.mMatInitModel;
+                }
+
+                GizmoContext.mMatInitModel = GizmoContext.mMatInitModel / float(mSetSelectedIndexIds.size());
+            }
+            /**/
         }
+
+
+
+
+//        for( auto it = mSelectedIndexIds.begin(); it != mSelectedIndexIds.end(); ++it )
+//        {
+//            cout<< " it " << it->second <<endl;
+//            //GizmoContext.mMatrixModelsInits.push_back( mGMeshModels[it->second]->getTransformMatrix() );
+//        }
+
+
+
+        for( auto it = mSetSelectedIndexIds.begin(); it != mSetSelectedIndexIds.end(); ++it )
+        {
+            cout<< " it-set " << *it <<endl;
+
+            GizmoContext.mMapModelsMatrixInits.insert( std::make_pair( *it , mGMeshModels[*it]->getTransformMatrix()) );
+        }
+
+
+
 
     }
 
@@ -573,23 +882,13 @@ void ICreatorScene::mouseReleasePress(float x, float y, int button)
           GizmoContext.mMousePressEnable = false;
           //------------------------------------------//
           float aspect = mWidth / mHeight;
-          float m_x = ((mouseX / mWidth ) - 0.5f) * aspect * 0.834;
-          float m_y = ((mouseY / mHeight) - 0.5f) * 0.834;
+          float m_x = ((mouseX / mWidth ) - 0.5f) *  2.0;
+          float m_y = ((mouseY / mHeight) - 0.5f) * -2.0;
           //GizmoContext.mMouseMoveX = GizmoContext.mMousePressX = m_x;
           //GizmoContext.mMouseMoveY = GizmoContext.mMousePressY = m_y;
 
 
-          GizmoContext.mMatViewCamera = mCamera.getViewMatrix();
-          //GizmoManipulator.MouseRealase(m_x,m_y,button,GizmoContext);
-
-
-
-          //------------------------------------------//
-
-          IGeometry::IVector3      Eye = mCamera.getEye();
-          IGeometry::IMatrix3x3 RotCam = mCamera.getViewMatrix().getRotMatrix();
-
-          mousePoint = Eye + IGeometry::IVector3(m_x,-m_y,-1.f) * RotCam;
+           mousePoint = mCamera.getConverPointInPlaneCamera(IGeometry::IVector2(m_x,m_y));
 
 
 //          //------------------------------------------//
@@ -599,7 +898,7 @@ void ICreatorScene::mouseReleasePress(float x, float y, int button)
 //          //------------------------------------------//
 
 
-
+          IGeometry::IVector3  Eye = mCamera.getEye();
           GizmoContext.mRayMove.OriginPoint  = GizmoContext.mRayInit.OriginPoint =  Eye;
           GizmoContext.mRayMove.Direction    = GizmoContext.mRayInit.Direction   = (mousePoint - Eye).normalized();
           GizmoContext.mRayMove.ClosetPoint  = GizmoContext.mRayInit.ClosetPoint =  Eye + GizmoContext.mRayMove.Direction * 2000.0f;
@@ -609,7 +908,26 @@ void ICreatorScene::mouseReleasePress(float x, float y, int button)
           {
              GizmoContext.mMatInitModel = mGMeshModels[mSelectedIndexID]->getTransformMatrix();
              // isSelected = false;
+
+
+             /**/
+             if(mShiftKey)
+             {
+                 GizmoContext.mMatInitModel.setToZero();
+                 for( auto it = mSetSelectedIndexIds.begin(); it != mSetSelectedIndexIds.end(); ++it )
+                 {
+                     GizmoContext.mMapModelsMatrixInits[*it] = mGMeshModels[*it]->getTransformMatrix();
+                     GizmoContext.mMatInitModel = mGMeshModels[*it]->getTransformMatrix() + GizmoContext.mMatInitModel;
+                 }
+
+                 GizmoContext.mMatInitModel = GizmoContext.mMatInitModel / float(mSetSelectedIndexIds.size());
+             }
+             /**/
           }
+
+
+
+
       }
 
       //************************************//
@@ -629,8 +947,13 @@ void ICreatorScene::mouseWheel(float delta)
 
 void ICreatorScene::keyboard(int key)
 {
+    //NullAllKey();
+
     if( Qt::Key_D ==  key )
     {
+
+        cout<< "Delete" <<endl;
+
         if( mSelectedIndexID >= 0 )
         {
             if(mGMeshModels[mSelectedIndexID] != NULL)
@@ -646,6 +969,35 @@ void ICreatorScene::keyboard(int key)
             }
         }
     }
+
+
+    mShiftKey = false;
+
+    if( key == Qt::Key_X )
+    {
+        mShiftKey = true;
+    }
+
+
+//    if( key == Qt::Key_X )
+//    {
+//        specialKeyboardDown(0);
+//    }
+
+
+}
+
+void ICreatorScene::realaseKeyboard(int key)
+{
+
+     mShiftKey = false;
+
+//    if( key == Qt::Key_X )
+//    {
+//        cout<< " No\\ " <<endl;
+//        mShiftKey = false;
+//        mSelectedIndexIds.clear();
+//    }
 }
 
 void ICreatorScene::destroy()

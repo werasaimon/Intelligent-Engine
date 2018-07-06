@@ -26,6 +26,7 @@ class ICreatorScene : public IScene
     //-----------------------//
 
 
+    bool mShiftKey;
 
 
     //=========================//
@@ -44,6 +45,10 @@ class ICreatorScene : public IScene
     std::vector<IGeometry::IMeshModel*> mGMeshModels;
 
     int mSelectedIndexID;
+
+   // std::map< IGeometry::IMeshModel*  , int > mSelectedIndexIds;
+
+    std::set< int > mSetSelectedIndexIds;
 
     //======== User Interface ========//
 
@@ -71,7 +76,9 @@ public:
      void mouseReleasePress( float x , float y , int button );
      void mouseWheel( float delta );
 
+
      void keyboard(int key );
+     void realaseKeyboard( int key );
      void destroy();
 };
 

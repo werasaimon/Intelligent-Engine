@@ -57,6 +57,7 @@ public:
     virtual void mouseReleasePress( float x , float y , int button ) = 0;
     virtual void mouseWheel( float delta ) = 0;
 
+    virtual void realaseKeyboard( int key ) = 0;
     virtual void keyboard(int key ) = 0;
     virtual void destroy() = 0;
 

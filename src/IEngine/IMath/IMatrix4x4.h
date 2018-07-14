@@ -47,7 +47,16 @@ namespace IMath
 template<class T>
 class IMatrix4x4
 {
- private:
+public:
+
+
+    //! Specifies the typename of the scalar components.
+    using ScalarType = T;
+
+    //! Specifies the number of vector components.
+    static const std::size_t components = 4*4;
+
+private:
 
     //-------------------- Attributes --------------------//
 
@@ -855,15 +864,17 @@ class IMatrix4x4
     }
 
 
-
-
-
-
+    /// Convert in OpenGL Matrix Model
+    SIMD_INLINE IMatrix4x4<T> convertInOpenGLFormat() const
+    {
+        IMatrix4x4<T> m(*this);
+        m.setPosition(getCoords());
+        m.setRotation(getRotMatrix().getTranspose());
+        return m;
+    }
 
 
     ///---------------------------[ Pulgins ] -----------------------------------///
-
-
 
 
 
@@ -1151,9 +1162,9 @@ class IMatrix4x4
         */
        static SIMD_INLINE IMatrix4x4<T> createRotationAroundAxis(T xDeg, T yDeg, T zDeg)
        {
-           T xRads(IDegreesToRadians(xDeg));
-           T yRads(IDegreesToRadians(yDeg));
-           T zRads(IDegreesToRadians(zDeg));
+           T xRads(/*IDegreesToRadians*/(xDeg));
+           T yRads(/*IDegreesToRadians*/(yDeg));
+           T zRads(/*IDegreesToRadians*/(zDeg));
 
            IMatrix4x4<T> ma, mb, mc;
            float ac = ICos(xRads);
@@ -1225,18 +1236,18 @@ class IMatrix4x4
 
            T D1, D2, D3, D4, D5, D6, D7, D8, D9; //Dummy variables to hold precalcs
 
-           D1 = (Quat.x * Quat.x) * 2.0f;
-           D2 = (Quat.y * Quat.y) * 2.0f;
-           D3 = (Quat.z * Quat.z) * 2.0f;
+           D1 = (Quat.v.x * Quat.v.x) * 2.0f;
+           D2 = (Quat.v.y * Quat.v.y) * 2.0f;
+           D3 = (Quat.v.z * Quat.v.z) * 2.0f;
 
            T RTimesTwo = Quat.w * 2.0f;
-           D4 = Quat.x * RTimesTwo;
-           D5 = Quat.y * RTimesTwo;
-           D6 = Quat.z * RTimesTwo;
+           D4 = Quat.v.x * RTimesTwo;
+           D5 = Quat.v.y * RTimesTwo;
+           D6 = Quat.v.z * RTimesTwo;
 
-           D7 = (Quat.x * Quat.y) * 2.0f;
-           D8 = (Quat.x * Quat.z) * 2.0f;
-           D9 = (Quat.y * Quat.z) * 2.0f;
+           D7 = (Quat.v.x * Quat.v.y) * 2.0f;
+           D8 = (Quat.v.x * Quat.v.z) * 2.0f;
+           D9 = (Quat.v.y * Quat.v.z) * 2.0f;
 
            M.mRows[0][0] = 1.0f - D2 - D3;
            M.mRows[1][0] = D7 - D6;
@@ -1328,7 +1339,7 @@ class IMatrix4x4
           T width = right - left;
           T invheight = top - bottom;
           T clip = farPlane - nearPlane;
-//      #ifndef QT_NO_VECTOR3D
+//      #ifndef I_NO_VECTOR3D
 //          if (clip == 2.0f && (nearPlane + farPlane) == 0.0f) {
 //              // We can express this projection as a translate and scale
 //              // which will be more efficient to modify with further
@@ -1431,7 +1442,7 @@ class IMatrix4x4
 
            // Construct the projection.
            IMatrix4x4<T> m;
-           T radians = IDegreesToRadians(verticalAngle / 2.0f);
+           T radians = /*IDegreesToRadians*/(verticalAngle / 2.0f);
            T sine = ISin(radians);
 
            if (sine == 0.0f) m.setToIdentity();

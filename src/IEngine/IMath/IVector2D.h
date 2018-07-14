@@ -55,6 +55,16 @@ template<class T>
 class IVector2D
 {
 public:
+
+
+    //! Specifies the typename of the scalar components.
+    using ScalarType = T;
+
+    //! Specifies the number of vector components.
+    static const std::size_t components = 2;
+
+     //-------------------- Attributes --------------------//
+
     union
     {
         /**
@@ -94,6 +104,13 @@ public:
     {
     }
 
+
+    SIMD_INLINE explicit IVector2D(const T& scalar)
+    : x ( scalar ), y ( scalar )
+    {
+
+    }
+
     /**
      * Creates and sets to (x,y)
      * @param nx initial x-coordinate value
@@ -119,9 +136,13 @@ public:
      */
     template<class FromT>
     SIMD_INLINE IVector2D(const IVector2D<FromT>& src)
-            : x(static_cast<T>(src.x)), y(static_cast<T>(src.y))
+            : x(static_cast<T>(src.x)),
+              y(static_cast<T>(src.y))
     {
     }
+
+
+
 
 
     //---------------------- Methods ---------------------//
@@ -532,13 +553,15 @@ public:
     }
 
 
-    SIMD_INLINE T getAngleBetween( const IVector2D<T> &Vector2 ) const
+
+    //! Returns the angle (in radians) between the two (normalized or unnormalized) vectors 'lhs' and 'rhs'.
+    SIMD_INLINE T getAngleBetween( const IVector2D<T> &rhs ) const
     {
-        IVector2D<T> Vector1(*this);
-        T dotProduct = Vector1.dot(Vector2);
-        T vectorsMagnitude = (Vector1.length()) * (Vector2.length());
+        IVector2D<T> lhs(*this);
+        T dotProduct = lhs.dot(rhs);
+        T vectorsMagnitude = (lhs.length()) * (rhs.length());
         T angle = IArcCos(dotProduct / vectorsMagnitude);
-        if( __isnan(angle)) return 0;
+        if( is_nan(angle)) return 0;
         return (angle);
     }
 

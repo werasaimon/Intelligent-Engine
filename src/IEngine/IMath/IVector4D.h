@@ -53,6 +53,13 @@ class IVector4D
 
 public:
 
+
+    //! Specifies the typename of the scalar components.
+    using ScalarType = T;
+
+    //! Specifies the number of vector components.
+    static const std::size_t components = 4;
+
    //-------------------- Attributes --------------------//
 
     union
@@ -122,6 +129,13 @@ public:
     SIMD_INLINE IVector4D()
        : x(0), y(0), z(0), w(0)
     {
+    }
+
+
+    SIMD_INLINE explicit IVector4D(const T& scalar)
+      : x ( scalar ) , y ( scalar ) , z ( scalar ) , z( scalar )
+    {
+
     }
 
     /**
@@ -653,6 +667,21 @@ public:
     SIMD_INLINE IVector4D<T> lerp(T fact, const IVector4D<T>& r) const
     {
         return (*this) + (r - (*this)) * fact;
+    }
+
+
+
+
+
+    //! Returns the angle (in radians) between the two (normalized or unnormalized) vectors 'lhs' and 'rhs'.
+    SIMD_INLINE T getAngleBetween( const IVector4D<T> &rhs ) const
+    {
+        IVector4D<T> lhs(*this);
+        T dotProduct = lhs.dot(rhs);
+        T vectorsMagnitude = (lhs.length()) * (rhs.length());
+        T angle = IArcCos(dotProduct / vectorsMagnitude);
+        if( is_nan(angle)) return 0;
+        return (angle);
     }
 
     //-------------[ conversion ]-----------------------------

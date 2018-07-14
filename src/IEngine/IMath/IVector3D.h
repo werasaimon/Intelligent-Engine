@@ -58,6 +58,12 @@ class IVector3D
 
 public:
 
+    //! Specifies the typename of the scalar components.
+    using ScalarType = T;
+
+    //! Specifies the number of vector components.
+    static const std::size_t components = 3;
+
     //-------------------- Attributes --------------------//
 
     union
@@ -127,6 +133,12 @@ public:
     SIMD_INLINE IVector3D()
             : x(0), y(0), z(0)
     {
+    }
+
+    SIMD_INLINE explicit IVector3D(const T& scalar)
+        : x ( scalar ) , y ( scalar ) , z ( scalar )
+    {
+
     }
 
     /**
@@ -570,8 +582,8 @@ public:
         // Compute and return the unit vector
         T lengthInv = T(1.0) / lengthVector;
         return IVector3D<T>( x * lengthInv,
-                              y * lengthInv,
-                              z * lengthInv);
+                             y * lengthInv,
+                             z * lengthInv);
     }
 
 
@@ -589,8 +601,8 @@ public:
         // Compute and return the unit vector
         T lengthInv = T(1.0) / lengthVector;
         return IVector3D<T>( x * lengthInv,
-                              y * lengthInv,
-                              z * lengthInv);
+                             y * lengthInv,
+                             z * lengthInv);
     }
 
     /**
@@ -636,12 +648,12 @@ public:
      */
     SIMD_INLINE void rotate(T ax, T ay, T az)
     {
-        T a = ICos(IDegreesToRadians(ax));
-        T b = ISin(IDegreesToRadians(ax));
-        T c = ICos(IDegreesToRadians(ay));
-        T d = ISin(IDegreesToRadians(ay));
-        T e = ICos(IDegreesToRadians(az));
-        T f = ISin(IDegreesToRadians(az));
+        T a = ICos(/*IDegreesToRadians*/(ax));
+        T b = ISin(/*IDegreesToRadians*/(ax));
+        T c = ICos(/*IDegreesToRadians*/(ay));
+        T d = ISin(/*IDegreesToRadians*/(ay));
+        T e = ICos(/*IDegreesToRadians*/(az));
+        T f = ISin(/*IDegreesToRadians*/(az));
         T nx = c * e * x - c * f * y + d * z;
         T ny = (a * f + b * d * e) * x + (a * e - b * d * f) * y - b * c * z;
         T nz = (b * f - a * d * e) * x + (a * d * f + b * e) * y + a * c * z;
@@ -667,16 +679,19 @@ public:
 
 
 
-
-    SIMD_INLINE T getAngleBetween( const IVector3D<T> &Vector2 ) const
+    //! Returns the angle (in radians) between the two (normalized or unnormalized) vectors 'lhs' and 'rhs'.
+    SIMD_INLINE T getAngleBetween( const IVector3D<T> &rhs ) const
     {
-        IVector3D<T> Vector1(*this);
-        T dotProduct = Vector1.dot(Vector2);
-        T vectorsMagnitude = (Vector1.length()) * (Vector2.length());
+        IVector3D<T> lhs(*this);
+        T dotProduct = lhs.dot(rhs);
+        T vectorsMagnitude = (lhs.length()) * (rhs.length());
         T angle = IArcCos(dotProduct / vectorsMagnitude);
         if( is_nan(angle)) return 0;
         return (angle);
     }
+
+
+
 
     //-------------[ conversion ]-----------------------------
 
@@ -874,11 +889,11 @@ static T dot(const IVector3D<T>& a, const IVector3D<T>& b)
 // Typedef shortcuts for 3D vector
 //-------------------------------------
 /// Three dimensional Vector of floats
-typedef IVector3D<float> IVector3f;
+typedef IVector3D<float>  IVector3f;
 /// Three dimensional Vector of doubles
 typedef IVector3D<double> IVector3d;
 /// Three dimensional Vector of ints
-typedef IVector3D<int> IVector3i;
+typedef IVector3D<int>    IVector3i;
 
 
 } /* namespace */

@@ -34,6 +34,7 @@
 
 // Libraries
 #include <cassert>
+#include "IVector2D.h"
 #include "IVector4D.h"
 
 
@@ -53,6 +54,15 @@ template<class T> class IQuaternion;
 // */
 template<class T> class IMatrix3x3
 {
+
+    public:
+
+
+        //! Specifies the typename of the scalar components.
+        using ScalarType = T;
+
+        //! Specifies the number of vector components.
+        static const std::size_t components = 3*3;
 
    private:
 
@@ -840,7 +850,7 @@ template<class T> class IMatrix3x3
        *  Help info to web site:  https://arxiv.org/pdf/1103.0156.pdf
        *****************************************************/
        /// Return lorentz demission distance world
-      static SIMD_INLINE IMatrix3x3<T> createLorentzRotationBoost(  IVector3D<T> vel )
+      static SIMD_INLINE IMatrix3x3<T> createLorentzRotationBoost(  const IVector3D<T>& vel )
       {
           const IVector3D<T> n = vel.getUnit();
           const T             v = vel.length();
@@ -899,6 +909,42 @@ template<class T> class IMatrix3x3
 
               return M;
        }
+
+
+      /// Creates translation matrix
+      /**
+       * Creates translation matrix.
+       * @param x X-direction translation
+       * @param y Y-direction translation
+       * @param z for Z-coordinate translation (implicitly set to 1)
+       */
+      static SIMD_INLINE IMatrix3x3<T> createTranslation(T x, T y, T z = 1)
+      {
+          IMatrix3x3<T> ret;
+          ret.mRows[2][0] = x;
+          ret.mRows[2][1] = y;
+          ret.mRows[2][2] = z;
+
+          return ret;
+      }
+
+
+      /// Creates translation matrix
+      /**
+       * Creates translation matrix.
+       * @param x X-direction translation
+       * @param y Y-direction translation
+       * @param z for Z-coordinate translation (implicitly set to 1)
+       */
+      static SIMD_INLINE IMatrix3x3<T> createTranslation(const IVector2D<T> & v, T z = 1)
+      {
+          IMatrix3x3<T> ret;
+          ret.mRows[2][0] = v.x;
+          ret.mRows[2][1] = v.y;
+          ret.mRows[2][2] = z;
+
+          return ret;
+      }
 
 
       // Return a 4x4 rotation of axis to matrix

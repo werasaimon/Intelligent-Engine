@@ -49,7 +49,7 @@ class IPlane
 
 protected:
 
-    IVector3D<T> mNormal;
+    IVector3D<T>  mNormal;
     T             mOffset;
 
 

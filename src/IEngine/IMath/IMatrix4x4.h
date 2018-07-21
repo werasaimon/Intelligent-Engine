@@ -1442,10 +1442,10 @@ private:
 
            // Construct the projection.
            IMatrix4x4<T> m;
-           T radians = /*IDegreesToRadians*/(verticalAngle / 2.0f);
+           T radians = (verticalAngle / 2.0f) * M_PI / 180.0f;
            T sine = ISin(radians);
 
-           if (sine == 0.0f) m.setToIdentity();
+           if (sine == 0.0f) return IMatrix4x4<T>::IDENTITY;
 
            T cotan = ICos(radians) / sine;
            T clip = farPlane - nearPlane;
@@ -1472,6 +1472,7 @@ private:
 
            return m;
        }
+
 
 
 

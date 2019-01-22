@@ -1,15 +1,18 @@
 #ifndef IPHYSICSENGINE_H
 #define IPHYSICSENGINE_H
 
-#include "body/IBody.h"
-#include "body/ICollisionBody.h"
+#include "IBody/IBody.h"
+#include "IBody/ICollisionBody.h"
+#include "IBody/IRigidBody.h"
 
-#include "collision/shapes/ICollisionShape.h"
-#include "collision/shapes/IConvexShape.h"
-#include "collision/shapes/ISphereShape.h"
-#include "collision/shapes/IBoxShape.h"
+#include "ICollision/ICollisionShapes/ICollisionShape.h"
+#include "ICollision/ICollisionShapes/ICollisionShapeConvex.h"
+#include "ICollision/ICollisionShapes/ICollisionShapeSphere.h"
+#include "ICollision/ICollisionShapes/ICollisionShapeBox.h"
+#include "ICollision/ICollisionShapes/ICollisionShapeHull.h"
 
-#include "dynamics/ICollisionWorld.h"
-#include "dynamics/IDynamicsWorld.h"
+#include "IDynamics/ICollisionWorld.h"
+#include "IDynamics/IDynamicsWorld.h"
+#include "IDynamics/IDynamicsWorldRealtivity.h"
 
 #endif // IPHYSICSENGINE_H

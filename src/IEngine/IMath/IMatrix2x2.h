@@ -92,9 +92,9 @@ template<class T> class IMatrix2x2
          *
          * @param arr Array of floating point values in row-major order.
          */
-        SIMD_INLINE IMatrix2x2(const T arr[4])
+        SIMD_INLINE IMatrix2x2(const T arr[components])
         {
-            std::memcpy(mData, arr, 4 * sizeof(T));
+            std::memcpy(mData, arr, components * sizeof(T));
         }
 
 
@@ -109,7 +109,8 @@ template<class T> class IMatrix2x2
          * @param entry11 Entry at row 1 column 1.
          * @param entry20 Entry at row 2 column 0.
          */
-        SIMD_INLINE IMatrix2x2(T entry00, T entry01, T entry10, T entry11)
+        SIMD_INLINE IMatrix2x2(T entry00, T entry01,
+                               T entry10, T entry11)
           : mData{entry00, entry01,
                   entry10, entry11}
         {
@@ -132,7 +133,7 @@ template<class T> class IMatrix2x2
         template<class FromT>
         SIMD_INLINE IMatrix2x2(const IMatrix2x2<FromT>& src)
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < components; i++)
             {
                 mData[i] = static_cast<T>(src.mData[i]);
             }
@@ -143,24 +144,24 @@ template<class T> class IMatrix2x2
         //---------------------- Methods ---------------------//
 
         /// Set the matrix to the identity matrix
-        SIMD_INLINE void setToIdentity()
+        SIMD_INLINE void SetToIdentity()
         {
         	// Initialize all values in the matrix to identity
-        	setAllValues(1.0, 0.0,
+            SetAllValues(1.0, 0.0,
                          0.0, 1.0);
         }
 
 
         /// Set the matrix to zero
-        SIMD_INLINE void setToZero()
+        SIMD_INLINE void SetToZero()
         {
-        	mRows[0].setToZero();
-        	mRows[1].setToZero();
+            mRows[0].SetToZero();
+            mRows[1].SetToZero();
         }
 
 
         /// Set all the values in the matrix
-        SIMD_INLINE void setAllValues(T a1, T a2,
+        SIMD_INLINE void SetAllValues(T a1, T a2,
                                       T b1, T b2)
         {
         	mRows[0][0] = a1; mRows[0][1] = a2;
@@ -174,8 +175,8 @@ template<class T> class IMatrix2x2
          */
         void OrthoNormalize()
         {
-           mRows[0].normalize();
-           mRows[1].normalize();
+           mRows[0].Normalize();
+           mRows[1].Normalize();
         }
 
 
@@ -189,7 +190,7 @@ template<class T> class IMatrix2x2
          */
         SIMD_INLINE T operator[](std::size_t index) const
         {
-            assert(index < 4);
+            assert(index < components);
             return mData[index];
         }
 
@@ -203,7 +204,7 @@ template<class T> class IMatrix2x2
         friend SIMD_INLINE bool operator==(const IMatrix2x2<T>& A, const IMatrix2x2<T>& B)
         {
             const T epsilon = MACHINE_EPSILON;
-            for (int i = 0; i < 4; ++i)
+            for (int i = 0; i < components; ++i)
             {
                 if (IAbs(A[i] - B[i]) > epsilon) return false;
             }
@@ -234,7 +235,7 @@ template<class T> class IMatrix2x2
         */
         SIMD_INLINE IMatrix2x2<T>& operator=(const IMatrix2x2<T>& rhs)
         {
-            std::memcpy(mData, rhs.mData, sizeof(T) * 4);
+            std::memcpy(mData, rhs.mData, sizeof(T) * components);
             return *this;
         }
 
@@ -245,7 +246,7 @@ template<class T> class IMatrix2x2
         template<class FromT>
         SIMD_INLINE IMatrix2x2<T>& operator=(const IMatrix2x2<FromT>& rhs)
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < components; i++)
             {
                 mData[i] = static_cast<T>(rhs.mData[i]);
             }
@@ -258,7 +259,7 @@ template<class T> class IMatrix2x2
         */
         SIMD_INLINE IMatrix2x2<T>& operator=(const T* rhs)
         {
-            std::memcpy(mData, rhs, sizeof(T) * 4);
+            std::memcpy(mData, rhs, sizeof(T) * components);
             return *this;
         }
 
@@ -272,7 +273,7 @@ template<class T> class IMatrix2x2
          */
         SIMD_INLINE operator T*()
         {
-        	return (T*) &mRows[0][0];
+            return  &mRows[0][0];
         }
 
         /**
@@ -282,14 +283,14 @@ template<class T> class IMatrix2x2
          */
         SIMD_INLINE operator const T*() const
         {
-        	return (const T*) &mRows[0][0];
+            return  &mRows[0][0];
         }
 
 
         /**
          * Conversion to pointer operator
          */
-        SIMD_INLINE const T* getData() const
+        SIMD_INLINE const T* GetData() const
         {
         	return &mRows[0][0];
         }
@@ -297,7 +298,7 @@ template<class T> class IMatrix2x2
         /**
          * Conversion to pointer operator
          */
-        SIMD_INLINE T* getData()
+        SIMD_INLINE T* GetData()
         {
         	return &mRows[0][0];
         }
@@ -321,14 +322,14 @@ template<class T> class IMatrix2x2
 
 
         /// Return a column
-        SIMD_INLINE IVector2D<T> getColumn(int i) const
+        SIMD_INLINE IVector2D<T> GetColumn(int i) const
         {
         	assert(i>= 0 && i<2);
             return IVector2D<T> (mRows[0][i], mRows[1][i] );
         }
 
         /// Return a row
-        SIMD_INLINE IVector2D<T> getRow(int i) const
+        SIMD_INLINE IVector2D<T> GetRow(int i) const
         {
         	assert(i>= 0 && i<2);
         	return mRows[i];
@@ -347,7 +348,10 @@ template<class T> class IMatrix2x2
         SIMD_INLINE IMatrix2x2<T> operator+(const IMatrix2x2<T>& rhs) const
         {
             IMatrix2x2<T> ret;
-        	for (int i = 0; i < 2; i++)  ret.mRows[i] = mRows[i] + rhs.mRows[i];
+            for (unsigned int i = 0; i < 2; i++)
+            {
+                ret.mRows[i] = mRows[i] + rhs.mRows[i];
+            }
         	return ret;
 
         }
@@ -367,7 +371,10 @@ template<class T> class IMatrix2x2
         SIMD_INLINE IMatrix2x2<T> operator-(const IMatrix2x2<T>& rhs) const
         {
             IMatrix2x2<T> ret;
-        	for (int i = 0; i < 2; i++) ret.mRows[i] = mRows[i] - rhs.mRows[i];
+            for (int i = 0; i < 2; i++)
+            {
+                ret.mRows[i] = mRows[i] - rhs.mRows[i];
+            }
         	return ret;
         }
 
@@ -382,7 +389,7 @@ template<class T> class IMatrix2x2
         friend SIMD_INLINE IMatrix2x2<T> operator-(const IMatrix2x2<T> &A)
         {
             return IMatrix2x2<T>( -A[0], -A[1],
-                                   -A[2], -A[3]
+                                  -A[2], -A[3]
         	);
         }
 
@@ -398,7 +405,7 @@ template<class T> class IMatrix2x2
         friend SIMD_INLINE IMatrix2x2<T> operator*(const IMatrix2x2<T>& matrix, const T nb)
         {
             return IMatrix2x2<T>(matrix.mRows[0][0] * nb, matrix.mRows[0][1] * nb,
-                                  matrix.mRows[1][0] * nb, matrix.mRows[1][1] * nb);
+                                 matrix.mRows[1][0] * nb, matrix.mRows[1][1] * nb);
         }
 
 
@@ -420,7 +427,7 @@ template<class T> class IMatrix2x2
         friend SIMD_INLINE IMatrix2x2<T>  operator/(T nb, const IMatrix2x2<T>& matrix)
         {
             return IMatrix2x2<T>(matrix.mRows[0][0] / nb, matrix.mRows[0][1] / nb,
-                                  matrix.mRows[1][0] / nb, matrix.mRows[1][1] / nb);
+                                 matrix.mRows[1][0] / nb, matrix.mRows[1][1] / nb);
         }
 
         /// Overloaded operator for inveret multiplication with a matrix
@@ -441,7 +448,14 @@ template<class T> class IMatrix2x2
          */
         friend SIMD_INLINE IVector2D<T> operator*(const IVector2D<T>& rhs, const IMatrix2x2<T>& lhs)
         {
-        	return lhs * rhs;
+            T fX = rhs.x;
+            T fY = rhs.y;
+
+            IVector2D<T> Point;
+            Point.x = ( fX * lhs.mRows[0][0] + fY * lhs.mRows[1][0] );
+            Point.y = ( fX * lhs.mRows[0][1] + fY * lhs.mRows[1][1] );
+
+            return Point;
         }
 
         /**
@@ -508,7 +522,7 @@ template<class T> class IMatrix2x2
          *
          * @return The determinant.
          */
-        SIMD_INLINE T getDeterminant() const
+        SIMD_INLINE T GetDeterminant() const
         {
         	return mData[0] * mData[3] - mData[1] * mData[2];
         }
@@ -518,16 +532,21 @@ template<class T> class IMatrix2x2
          *
          * @return The multiplicitive inverse of this matrix.
          */
-        SIMD_INLINE IMatrix2x2<T> getInverse() const
+        SIMD_INLINE IMatrix2x2<T> GetInverse() const
         {
         	// Ensure that the matrix is not singular.
-        	const T det = getDeterminant();
+            const T det = GetDeterminant();
         	assert(det != 0.0f);
 
         	// Return a copy of the inverse of this matrix.
         	const T invDet = 1.0f / det;
             return IMatrix2x2<T>( mData[3] * invDet, -mData[1] * invDet,
-                                  -mData[2] * invDet,  mData[0] * invDet );
+                                 -mData[2] * invDet,  mData[0] * invDet );
+        }
+
+        void Inverse()
+        {
+            *this = *this->GetInverse();
         }
 
         /**
@@ -536,7 +555,7 @@ template<class T> class IMatrix2x2
          *
          * @return Transposed copy of this matrix.
          */
-        SIMD_INLINE IMatrix2x2<T> getTranspose() const
+        SIMD_INLINE IMatrix2x2<T> GetTranspose() const
         {
             IMatrix2x2<T> ret;
         	for (int i = 0; i < 2; i++)
@@ -553,7 +572,7 @@ template<class T> class IMatrix2x2
         /**
          * Return the matrix with absolute values
          */
-        SIMD_INLINE IMatrix2x2<T> getAbsoluteMatrix() const
+        SIMD_INLINE IMatrix2x2<T> GetAbsoluteMatrix() const
         {
             return IMatrix2x2<T>(IAbs(mRows[0][0]), IAbs(mRows[0][1]),
                                  IAbs(mRows[1][0]), IAbs(mRows[1][1]));
@@ -563,7 +582,7 @@ template<class T> class IMatrix2x2
         /**
          * Return the trace of the matrix
          */
-        SIMD_INLINE T getTrace() const
+        SIMD_INLINE T GetTrace() const
         {
         	// Compute and return the trace
         	return (mRows[0][0] + mRows[1][1]);
@@ -611,21 +630,54 @@ template<class T> class IMatrix2x2
 
 
         /// Return a skew-symmetric matrix using a given vector that can be used
-        /// to compute cross product with another vector using matrix multiplication
-        static SIMD_INLINE IMatrix2x2<T> computeSkewSymmetricMatrixForCrossProduct(const IVector2D<T>& vector)
+        /// to compute Cross product with another vector using matrix multiplication
+        static SIMD_INLINE IMatrix2x2<T> ComputeSkewSymmetricMatrixForCrossProduct(const IVector2D<T>& vector)
         {
-            return IMatrix2x2<T>(0 , -vector.x,
-                                  vector.y , 0 );
+            return IMatrix2x2<T>(0, -vector.x, vector.y ,0 );
         }
 
 
-        /// Return a symmetric matrix using a given vector that can be used
-        /// to compute dot product with another vector using matrix multiplication
-         static SIMD_INLINE IMatrix2x2<T> computeSymmetricMatrix(const IVector2D<T>& vector)
+
+
+         /**
+          * Returns a scaling matrix that scales by `factor` uniformly.
+          *
+          * @param scale Uniform scale factor.
+          * @return Scaling matrix.
+          */
+         static SIMD_INLINE IMatrix2x2<T> CreateScale(const T _scale)
          {
-             return IMatrix2x2<T>(0 , vector.x,
-                                   vector.y , 0 );
+             static IMatrix2x2 res;
+
+             T _x = T(_scale);
+             T _y = T(_scale);
+
+             res.mRows[0] = IVector2D<T>( _x ,  0.f );
+             res.mRows[1] = IVector2D<T>( 0.f , _y  );
+
+             return res;
          }
+
+
+
+         /**
+         * Returns a scaling matrix that scales by `scaleFactors.x` and
+         * 'scaleFactors.y' in the x and y axes respectively.
+         *
+         * @param scaleFactors Scale factors.
+         * @return Scaling matrix.
+         */
+         static SIMD_INLINE IMatrix2x2<T> CreateScale(  T _x , T _y  )
+         {
+             static IMatrix2x2 res;
+
+             res.mRows[0] = IVector2D<T>( _x  ,  0.f );
+             res.mRows[1] = IVector2D<T>( 0.f , _y   );
+
+             return res;
+         }
+
+
 
         /**
          * Returns a scaling matrix that scales by `scaleFactors.x` and
@@ -634,12 +686,12 @@ template<class T> class IMatrix2x2
          * @param scaleFactors Scale factors.
          * @return Scaling matrix.
          */
-        static SIMD_INLINE IMatrix2x2<T> createScale(const IVector2D<T>& _scale )
+        static SIMD_INLINE IMatrix2x2<T> CreateScale(const IVector2D<T>& _scale )
         {
             static IMatrix2x2 res;
 
-            T _x = T(1. + _scale.x);
-            T _y = T(1. + _scale.y);
+            T _x = T(_scale.x);
+            T _y = T(_scale.y);
 
             res.mRows[0] = IVector2D<T>( _x  ,  0.f );
             res.mRows[1] = IVector2D<T>( 0.f , _y   );
@@ -647,31 +699,13 @@ template<class T> class IMatrix2x2
             return res;
         }
 
-        /**
-         * Returns a scaling matrix that scales by `factor` uniformly.
-         *
-         * @param scale Uniform scale factor.
-         * @return Scaling matrix.
-         */
-        static SIMD_INLINE IMatrix2x2<T> createScale(const T _scale)
-        {
-            static IMatrix2x2 res;
-
-            T _x = T(1. + _scale);
-            T _y = T(1. + _scale);
-
-            res.mRows[0] = IVector2D<T>( _x ,  0.f );
-            res.mRows[1] = IVector2D<T>( 0.f , _y  );
-
-            return res;
-        }
 
 
         /**
          * Returns a scaling around axis matrix that scales
          * @return axis to scaling matrix.
          */
-        static SIMD_INLINE IMatrix2x2<T>  createScaleAroundAxis( const IVector2D<T> _axis , T _scale )
+        static SIMD_INLINE IMatrix2x2<T>  CreateScaleAroundAxis( const IVector2D<T> _axis , T _scale )
         {
             static IMatrix2x2<T> M;
             T bgamma = (_scale - 1.0);
@@ -692,13 +726,13 @@ template<class T> class IMatrix2x2
          * @return Rotation matrix that rotates `angle` radians
          * counter-clockwise.
          */
-        static SIMD_INLINE IMatrix2x2<T> createRotation(const T angle)
+        static SIMD_INLINE IMatrix2x2<T> CreateRotation(const T angle)
         {
 
             const T cosTheta = ICos(angle);
             const T sinTheta = ISin(angle);
             return IMatrix2x2<T>( cosTheta, -sinTheta,
-                                   sinTheta,  cosTheta);
+                                  sinTheta,  cosTheta);
         }
 
         /**
@@ -710,15 +744,15 @@ template<class T> class IMatrix2x2
          * @return Rotation matrix corresponding to the rotation from
          * `fromDirection` to `toDirection`.
          */
-        static SIMD_INLINE IMatrix2x2<T> createFromToRotation(const IVector2D<T>& fromDirection, const IVector2D<T>& toDirection)
+        static SIMD_INLINE IMatrix2x2<T> CreateFromToRotation(const IVector2D<T>& fromDirection, const IVector2D<T>& toDirection)
         {
-            assert(fromDirection.lengthSquare() > 0.0f && toDirection.lengthSquare() > 0.0f);
+            assert(fromDirection.LengthSquare() > 0.0f && toDirection.LengthSquare() > 0.0f);
 
             // Compute the angle between the two vectors.
-            const T theta = IVector2D<T>::getAngleBetween(toDirection);
+            const T theta = IVector2D<T>::GetAngleBetween(toDirection);
 
             // Return the rotation matrix.
-            return createRotation(theta);
+            return CreateRotation(theta);
         }
 
 
@@ -747,7 +781,7 @@ template<class T> class IMatrix2x2
         /**
         * Gets string representation.
         */
-        std::string toString() const
+        std::string ToString() const
         {
             std::ostringstream oss;
             oss << *this;
@@ -783,13 +817,14 @@ template<class T>  SIMD_INLINE IMatrix2x2<T> operator ^ (const IVector2D<T> lhs 
 //--------------------------------------
 // Typedef shortcuts for Matrix2x2
 //-------------------------------------
-/// Matrix 2x2 of floats
-typedef IMatrix2x2<float> IMatrix2x2f;
-/// Matrix 2x2 of doubles
-typedef IMatrix2x2<double> IMatrix2x2d;
-/// Matrix 2x2 of int
-typedef IMatrix2x2<int> IMatrix2x2i;
 
+using IMatrix2x2r    = IMatrix2x2<Real>;
+using IMatrix2x2f    = IMatrix2x2<float>;
+using IMatrix2x2d    = IMatrix2x2<double>;
+using IMatrix2x2i    = IMatrix2x2<std::int32_t>;
+using IMatrix2x2ui   = IMatrix2x2<std::uint32_t>;
+using IMatrix2x2b    = IMatrix2x2<std::int8_t>;
+using IMatrix2x2ub   = IMatrix2x2<std::uint8_t>;
 
 
 } /* namespace */

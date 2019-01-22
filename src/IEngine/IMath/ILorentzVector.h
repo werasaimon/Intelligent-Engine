@@ -32,6 +32,7 @@
 #ifndef ILORENTZVECTOR4D_H
 #define ILORENTZVECTOR4D_H
 
+#include "IReal.h"
 #include "IVector3D.h"
 
 namespace IMath
@@ -102,7 +103,7 @@ template<class T> class  ILorentzVector
 
     //---------------------- Methods ---------------------//
 
-    SIMD_INLINE void setToZero()
+    SIMD_INLINE void SetToZero()
     {
       x = T(0);
       y = T(0);
@@ -111,7 +112,7 @@ template<class T> class  ILorentzVector
     }
 
 
-    SIMD_INLINE void setAllValues(T newX, T newY, T newZ, T newT)
+    SIMD_INLINE void SetAllValues(T newX, T newY, T newZ, T newT)
     {
       x = newX;
       y = newY;
@@ -120,128 +121,102 @@ template<class T> class  ILorentzVector
     }
 
 
-    SIMD_INLINE T getX() const { return x; }
-    SIMD_INLINE T getY() const { return y; }
-    SIMD_INLINE T getZ() const { return z; }
-    SIMD_INLINE T getT() const { return t; }
+    SIMD_INLINE T GetX() const { return x; }
+    SIMD_INLINE T GetY() const { return y; }
+    SIMD_INLINE T GetZ() const { return z; }
+    SIMD_INLINE T GetT() const { return t; }
 
 
-    SIMD_INLINE T getP()  const { return (x*x + y*y + z*z); }
-    SIMD_INLINE T getE()  const { return t; }
-    SIMD_INLINE T getEnergy()  const { return t; }
+    SIMD_INLINE T GetP()  const { return (x*x + y*y + z*z); }
+    SIMD_INLINE T GetE()  const { return t; }
+    SIMD_INLINE T GetEnergy()  const { return t; }
 
 
-    SIMD_INLINE void setX(T _x) { x = _x; }
-    SIMD_INLINE void setY(T _y) { y = _y; }
-    SIMD_INLINE void setZ(T _z) { z = _z; }
-    SIMD_INLINE void setW(T _t) { t = _t; }
+    SIMD_INLINE void SetX(T _x) { x = _x; }
+    SIMD_INLINE void SetY(T _y) { y = _y; }
+    SIMD_INLINE void SetZ(T _z) { z = _z; }
+    SIMD_INLINE void SetW(T _t) { t = _t; }
 
 
-    SIMD_INLINE void setXYZM(T x, T y, T z, T m)
+    SIMD_INLINE void SetXYZM(T x, T y, T z, T m)
     {
         if ( m  >= 0 )
         {
-            setAllValues( x, y, z, ISqrt(x*x+y*y+z*z+m*m) );
+            SetAllValues( x, y, z, ISqrt(x*x+y*y+z*z+m*m) );
         }
         else
         {
-            setAllValues( x, y, z, ISqrt( IMax((x*x+y*y+z*z-m*m), 0. ) ) );
+            SetAllValues( x, y, z, ISqrt( IMax((x*x+y*y+z*z-m*m), 0. ) ) );
         }
     }
 
 
-    SIMD_INLINE  void setPtEtaPhiM(T pt, T eta, T phi, T m)
+    SIMD_INLINE  void SetPtEtaPhiM(T pt, T eta, T phi, T m)
     {
         pt = Abs(pt);
-        SetXYZM(pt*Cos(phi), pt*ISin(phi), pt*ISinh(eta) ,m);
+        SetXYZM(pt*ICos(phi), pt*ISin(phi), pt*ISinh(eta) ,m);
     }
 
-    SIMD_INLINE void setPtEtaPhiE(T pt, T eta, T phi, T e)
+    SIMD_INLINE void SetPtEtaPhiE(T pt, T eta, T phi, T e)
     {
         pt = Abs(pt);
-        SetXYZT(pt*Cos(phi), pt*ISin(phi), pt*ISinh(eta) ,e);
+        SetXYZT(pt*ICos(phi), pt*ISin(phi), pt*ISinh(eta) ,e);
     }
 
 
-    SIMD_INLINE void setVector3(const IVector3D<T> &v)
+    SIMD_INLINE void SetXYZ(const IVector3D<T> &v)
     {
         x = v.x;
         y = v.y;
         z = v.z;
     }
 
-
     /// System coordinate . 3 vector component
-    SIMD_INLINE IVector3D<T> vect() const
+    SIMD_INLINE IVector3D<T> GetXYZ() const
     {
         return IVector3D<T>(x,y,z);
     }
 
 
     ///  Project on space-3D
-    SIMD_INLINE IVector3D<T> getBoostVector() const
+    SIMD_INLINE IVector3D<T> GetBoostVector() const
     {
        return IVector3D<T>(x/t, y/t, z/t);
     }
 
     /// Return the square of the length of the vector
     /// Metrices Minkowski Space
-    SIMD_INLINE T lengthSquare() const
+    SIMD_INLINE T LengthSquare(const T _SpeedLight = DEFAUL_LIGHT_MAX_VELOCITY_C) const
     {
-    	const T c = LIGHT_MAX_VELOCITY_C;
+        const T c = _SpeedLight;
          return (c*c) * (t*t) - (x*x + y*y + z*z);
     }
 
     /// Return the length of the vector
-    SIMD_INLINE T length() const
+    SIMD_INLINE T Length(const T _SpeedLight = DEFAUL_LIGHT_MAX_VELOCITY_C) const
     {
-        T mm = lengthSquare();
+        T mm = LengthSquare(_SpeedLight);
         return mm < 0.0 ? -ISqrt(-mm) : ISqrt(mm);
     }
 
 
-    SIMD_INLINE T getBeta() const
+    SIMD_INLINE T GetBeta() const
     {
        return ISqrt(x*x + y*y + z*z) / t;
     }
 
-    SIMD_INLINE T getGamma() const
+    SIMD_INLINE T GetGamma() const
     {
-       T b = getBeta();
+       T b = GetBeta();
        return 1.0/ISqrt(1- b*b);
     }
 
-
-    SIMD_INLINE void Boost(T bx, T by, T bz)
-    {
-       /**
-       //Boost this Lorentz vector
-       T b2 = bx*bx + by*by + bz*bz;
-       T gamma = 1.0 / ISqrt(1.0 - b2);
-       T bp = bx*x + by*y + bz*z;
-       T gamma2 = b2 > 0 ? (gamma - 1.0)/b2 : 0.0;
-
-       SetX(getX() + gamma2*bp*bx + gamma*bx*getT());
-       SetY(getY() + gamma2*bp*by + gamma*by*getT());
-       SetZ(getZ() + gamma2*bp*bz + gamma*bz*getT());
-       SetT(gamma*(getT() + bp));
-       **/
-
-    	/// method Gerglocema
-        *this = createBoost( *this , IVector3D<T>(bx,by,bz) );
-    }
-
-    SIMD_INLINE void Boost( const IVector3D<T> &b)
-    {
-    	/// method Gerglocema
-    	*this = createBoost( *this , b );
-    }
 
 
     SIMD_INLINE T Rapidity() const
     {
        //return rapidity
-       return 0.5*log( (getE()+getZ()) / (getE()-getZ()) );
+       return 0.5*log( (GetE()+GetZ()) / (GetE()-GetZ()) );
     }
 
 
@@ -249,9 +224,9 @@ template<class T> class  ILorentzVector
     /**
      * Normalize Unit vector
      */
-    SIMD_INLINE ILorentzVector<T> getUnit() const
+    SIMD_INLINE ILorentzVector<T> GetUnit() const
     {
-        T lengthVector = length();
+        T lengthVector = Length();
         if (lengthVector < MACHINE_EPSILON)
         {
             return *this;
@@ -259,18 +234,18 @@ template<class T> class  ILorentzVector
         // Compute and return the unit vector
         T lengthInv = T(1.0) / lengthVector;
         return ILorentzVector<T>( x * lengthInv ,
-                                   y * lengthInv ,
-                                   z * lengthInv ,
-                                   t * lengthInv );
+                                  y * lengthInv ,
+                                  z * lengthInv ,
+                                  t * lengthInv );
     }
 
 
     /**
      * Normalize Unit vector (popular name to methods)
      */
-    SIMD_INLINE ILorentzVector<T> normalized() const
+    SIMD_INLINE ILorentzVector<T> Normalized() const
     {
-        T lengthVector = length();
+        T lengthVector = Length();
         if (lengthVector < MACHINE_EPSILON)
         {
             return *this;
@@ -278,16 +253,16 @@ template<class T> class  ILorentzVector
         // Compute and return the unit vector
         T lengthInv = T(1.0) / lengthVector;
         return ILorentzVector<T>( x * lengthInv ,
-                                   y * lengthInv ,
-                                   z * lengthInv ,
-                                   t * lengthInv );
+                                  y * lengthInv ,
+                                  z * lengthInv ,
+                                  t * lengthInv );
     }
 
 
     /**
     * Inverse vector
     */
-    SIMD_INLINE ILorentzVector<T> getInverse() const
+    SIMD_INLINE ILorentzVector<T> GetInverse() const
     {
         return ILorentzVector<T>( T(1.0/x) , T(1.0/y) , T(1.0/z) , T(1.0/t));
     }
@@ -472,7 +447,7 @@ template<class T> class  ILorentzVector
      */
      SIMD_INLINE T & operator[](int n)
     {
-    	static_assert(sizeof(*this) == sizeof(T[4]), "");
+        static_assert(sizeof(*this) == sizeof(T[components]), "");
     	assert(n >= 0 && n < 4);
     	return (&x)[n];
     }
@@ -486,7 +461,7 @@ template<class T> class  ILorentzVector
      */
     SIMD_INLINE const T & operator[](int n) const
     {
-    	static_assert(sizeof(*this) == sizeof(T[4]), "");
+        static_assert(sizeof(*this) == sizeof(T[components]), "");
     	assert(n >= 0 && n < 4);
     	return (&x)[n];
     }
@@ -596,7 +571,7 @@ template<class T> class  ILorentzVector
      * Dot product of two vectors.
      * @param rhs Right hand side argument of binary operator.
      */
-    SIMD_INLINE T dot(const ILorentzVector<T>& rhs) const
+    SIMD_INLINE T Dot(const ILorentzVector<T>& rhs) const
     {
          return t*rhs.t - z*rhs.z - y*rhs.y - x*rhs.x;
     }
@@ -605,7 +580,7 @@ template<class T> class  ILorentzVector
      * Cross tri product operator
      * @param rhs Right hand side argument of binary operator.
      */
-    SIMD_INLINE ILorentzVector<T> cross(const ILorentzVector<T>& b , const ILorentzVector<T>& c) const
+    SIMD_INLINE ILorentzVector<T> Cross(const ILorentzVector<T>& b , const ILorentzVector<T>& c) const
     {
 
         //Precompute some 2x2 matrix determinants for speed
@@ -625,27 +600,94 @@ template<class T> class  ILorentzVector
           );
     }
 
-    //================================ Plugin =====================================//
+
+
+
+    //================================  Method Gerglocema =======================================//
+
+//    SIMD_INLINE void Boost(T bx, T by, T bz , const T _SpeedLight = DEFAUL_LIGHT_MAX_VELOCITY_C)
+//    {
+//        /**
+//       //Boost this Lorentz vector
+//       T b2 = bx*bx + by*by + bz*bz;
+//       T gamma = 1.0 / ISqrt(1.0 - b2);
+//       T bp = bx*x + by*y + bz*z;
+//       T gamma2 = b2 > 0 ? (gamma - 1.0)/b2 : 0.0;
+
+//       SetX(GetX() + gamma2*bp*bx + gamma*bx*GetT());
+//       SetY(GetY() + gamma2*bp*by + gamma*by*GetT());
+//       SetZ(GetZ() + gamma2*bp*bz + gamma*bz*GetT());
+//       SetT(gamma*(GetT() + bp));
+//       **/
+
+//        /// method Gerglocema
+//        *this = CreateGerglocemaBoost( *this , IVector3D<T>(bx,by,bz) , _SpeedLight);
+//    }
+
+//    SIMD_INLINE void Boost(T bx, T by, T bz , T gamma , const T _SpeedLight = DEFAUL_LIGHT_MAX_VELOCITY_C)
+//    {
+//    	/// method Gerglocema
+//        *this = CreateGerglocemaBoost( *this , IVector3D<T>(bx,by,bz) , gamma , _SpeedLight);
+//    }
+
+    SIMD_INLINE void GerglocemaBoostInvert( const IVector3D<T> &b , const T _SpeedLight = DEFAUL_LIGHT_MAX_VELOCITY_C)
+    {
+        /// Invert method Gerglocema
+        *this = CreateGerglocemaBoostInvert( *this , b , _SpeedLight );
+    }
+
+    SIMD_INLINE void GerglocemaBoost( T gamma , const IVector3D<T> &b ,  const T _SpeedLight = DEFAUL_LIGHT_MAX_VELOCITY_C)
+    {
+        /// Method Gerglocema
+        *this = CreateGerglocemaBoost( gamma  , *this , b , _SpeedLight );
+    }
+
+
+    //===========================================================================================//
+
+
+
+
+     //================================ Plugin =====================================//
+
+    /**
+     *  Method Gerglocema Invert-Method ^ -1
+     */
+    static SIMD_INLINE ILorentzVector<T> CreateGerglocemaBoostInvert( const ILorentzVector<T> &pos , const IVector3D<T> &v , const T _SpeedLight = DEFAUL_LIGHT_MAX_VELOCITY_C)
+    {
+        /// Light speed
+        const T c = _SpeedLight;
+
+        /// Invert gamma factor
+        T gamma = 1.0 * ISqrt( 1.0 + (v.Dot(v)) / (c*c) );
+
+        /// method Gerglocema
+        ILorentzVector<T> res;
+        IVector3D<T> ortogonalPredikat = (pos.GetXYZ().Cross(v)).Cross(v);
+        res.SetXYZ(((pos.GetXYZ() + v * pos.t ) / gamma) - (T(1)/(c*c))*(T(1)/(gamma*(1+gamma))) * ortogonalPredikat);
+        res.t =  (pos.t + (v.Dot(pos.GetXYZ())/(c*c))) / gamma ;
+        return res;
+    }
+
 
     /**
      *  Method Gerglocema
      */
-    static SIMD_INLINE ILorentzVector<T> createBoost( const ILorentzVector<T> &pos , const IVector3D<T> &v)
+    static SIMD_INLINE ILorentzVector<T> CreateGerglocemaBoost( T gamma , const ILorentzVector<T> &pos , const IVector3D<T> &v , const T _SpeedLight = DEFAUL_LIGHT_MAX_VELOCITY_C)
     {
-    	///Light speed
-    	const T c = LIGHT_MAX_VELOCITY_C;
+        ///Light speed
+        const T c = _SpeedLight;
 
-    	/// gamma factor
-        float gamma = ISqrt( 1.0 - v.dot(v) / (c*c));
-
-    	/// method Gerglocema
+        /// method Gerglocema
         ILorentzVector<T> res;
-        IVector3D<T> ortogonalPredikat = (pos.vect().cross(v)).cross(v);
-    	res.x = ((pos.x + v.x * pos.t ) / gamma) + (T(1)/(c*c))*(T(1)/(gamma*(1+gamma))) * ortogonalPredikat.x;
-    	res.y = ((pos.y + v.y * pos.t ) / gamma) + (T(1)/(c*c))*(T(1)/(gamma*(1+gamma))) * ortogonalPredikat.y;
-    	res.z = ((pos.z + v.z * pos.t ) / gamma) + (T(1)/(c*c))*(T(1)/(gamma*(1+gamma))) * ortogonalPredikat.z;
-    	res.t =  (pos.t + (v.dot(pos.vect())/(c*c))) / gamma ;
-    	return res;
+        IVector3D<T> ortogonalPredikat = (pos.GetXYZ().Cross(v)).Cross(v);
+
+        res.x = ((pos.x + v.x * pos.t ) / gamma) + (T(1)/(c*c))*(T(1)/(gamma*(1+gamma))) * ortogonalPredikat.x;
+        res.y = ((pos.y + v.y * pos.t ) / gamma) + (T(1)/(c*c))*(T(1)/(gamma*(1+gamma))) * ortogonalPredikat.y;
+        res.z = ((pos.z + v.z * pos.t ) / gamma) + (T(1)/(c*c))*(T(1)/(gamma*(1+gamma))) * ortogonalPredikat.z;
+        res.t =  (pos.t + (v.Dot(pos.GetXYZ())/(c*c))) / gamma ;
+
+        return res;
     }
 
 
@@ -665,7 +707,7 @@ template<class T> class  ILorentzVector
      /**
      * Gets string representation.
      */
-     std::string toString() const
+     std::string ToString() const
      {
          std::ostringstream oss;
          oss << *this;
@@ -676,27 +718,29 @@ template<class T> class  ILorentzVector
 
 
 template<class T> const
-static ILorentzVector<T> cross(const ILorentzVector<T>& a, const ILorentzVector<T>& b , const ILorentzVector<T>& c)
+static ILorentzVector<T> Cross(const ILorentzVector<T>& a, const ILorentzVector<T>& b , const ILorentzVector<T>& c)
 {
-    return a.cross(b,c);
+    return a.Cross(b,c);
 }
 
 template<class T> const
-static T dot(const ILorentzVector<T>& a, const ILorentzVector<T>& b)
+static T Dot(const ILorentzVector<T>& a, const ILorentzVector<T>& b)
 {
-    return a.dot(b);
+    return a.Dot(b);
 }
 
 
 //--------------------------------------
 // Typedef shortcuts for 4D LorentzVector
 //-------------------------------------
-/// Three dimensional LorentzVector of floats
-typedef ILorentzVector<float> ILorentzVectorf;
-/// Three dimensional LorentzVector of doubles
-typedef ILorentzVector<double> ILorentzVectord;
-/// Three dimensional LorentzVector of ints
-typedef ILorentzVector<int> ILorentzVectori;
+
+using ILorentzVectorr    = ILorentzVector<Real>;
+using ILorentzVectorf    = ILorentzVector<float>;
+using ILorentzVectord    = ILorentzVector<double>;
+using ILorentzVectori    = ILorentzVector<std::int32_t>;
+using ILorentzVectorui   = ILorentzVector<std::uint32_t>;
+using ILorentzVectorb    = ILorentzVector<std::int8_t>;
+using ILorentzVectorub   = ILorentzVector<std::uint8_t>;
 
 
 

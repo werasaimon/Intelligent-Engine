@@ -32,6 +32,8 @@
 #define IMATRIX4X4_H_
 
 #include "ILorentzVector.h"
+#include "IVector2D.h"
+#include "IVector3D.h"
 #include "IMatrix3x3.h"
 
 
@@ -75,7 +77,7 @@ private:
     SIMD_INLINE IMatrix4x4()
     {
         // Initialize all values in the matrix to zero
-        setAllValues(1.0, 0.0, 0.0, 0.0 ,
+        SetAllValues(1.0, 0.0, 0.0, 0.0 ,
                      0.0, 1.0, 0.0, 0.0 ,
                      0.0, 0.0, 1.0, 0.0 ,
                      0.0, 0.0, 0.0, 1.0);
@@ -87,7 +89,7 @@ private:
      */
     SIMD_INLINE IMatrix4x4(const T * dt)
     {
-        std::memcpy(mData, dt, sizeof(T) * 16);
+        std::memcpy(mData, dt, sizeof(T) * components);
     }
 
     /**
@@ -96,7 +98,7 @@ private:
      */
     SIMD_INLINE IMatrix4x4(const IMatrix4x4<T>& src)
     {
-        std::memcpy(mData, src.mData, sizeof(T) * 16);
+        std::memcpy(mData, src.mData, sizeof(T) * components);
     }
 
     /**
@@ -130,7 +132,7 @@ private:
     // Constructor
     SIMD_INLINE IMatrix4x4<T>(T value)
     {
-        setAllValues(value, value, value, value,
+        SetAllValues(value, value, value, value,
                      value, value, value, value,
                      value, value, value, value,
                      value, value, value, value);
@@ -143,7 +145,7 @@ private:
                                T d1, T d2, T d3, T d4)
     {
         // Initialize the matrix with the values
-        setAllValues(a1, a2, a3, a4 ,
+        SetAllValues(a1, a2, a3, a4 ,
                      b1, b2, b3, b4 ,
                      c1, c2, c3, c4 ,
                      d1, d2, d3, d4);
@@ -153,7 +155,7 @@ private:
     // Constructor with arguments
     SIMD_INLINE IMatrix4x4( T data[4][4] )
     {
-        setAllValues(data[0][0], data[0][1], data[0][2], data[0][3],
+        SetAllValues(data[0][0], data[0][1], data[0][2], data[0][3],
                      data[1][0], data[1][1], data[1][2], data[1][3],
                      data[2][0], data[2][1], data[2][2], data[2][3],
                      data[3][0], data[3][1], data[3][2], data[3][3]);
@@ -167,7 +169,7 @@ private:
     template<class FromT>
     SIMD_INLINE IMatrix4x4(const IMatrix4x4<FromT>& src)
     {
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < components; i++)
         {
             mData[i] = static_cast<T>(src.mData[i]);
         }
@@ -180,10 +182,10 @@ private:
     /**
     * Resets matrix to be identity matrix
     */
-    SIMD_INLINE void setToIdentity()
+    SIMD_INLINE void SetToIdentity()
     {
     	// Initialize all values in the matrix to identity
-    	setAllValues(1.0, 0.0, 0.0, 0.0,
+        SetAllValues(1.0, 0.0, 0.0, 0.0,
                      0.0, 1.0, 0.0, 0.0,
                      0.0, 0.0, 1.0, 0.0,
                      0.0, 0.0, 0.0, 1.0);
@@ -194,13 +196,13 @@ private:
     /**
     * Resets matrix to zero
     */
-    SIMD_INLINE void setToZero()
+    SIMD_INLINE void SetToZero()
     {
       // Initialize all values in the matrix to zero
-      mRows[0].setToZero();
-      mRows[1].setToZero();
-      mRows[2].setToZero();
-      mRows[3].setToZero();
+      mRows[0].SetToZero();
+      mRows[1].SetToZero();
+      mRows[2].SetToZero();
+      mRows[3].SetToZero();
     }
 
 
@@ -208,7 +210,7 @@ private:
     /**
      * Resets matrix to be value matrix
      */
-    SIMD_INLINE void setAllValues(T a1, T a2, T a3, T a4,
+    SIMD_INLINE void SetAllValues(T a1, T a2, T a3, T a4,
                                   T b1, T b2, T b3, T b4,
                                   T c1, T c2, T c3, T c4,
                                   T d1, T d2, T d3, T d4)
@@ -221,14 +223,18 @@ private:
 
 
     /**
-     * normalized matrix to be value matrix3x3
+     * Normalized matrix to be value matrix3x3
      */
     void OrthoNormalize()
     {
-       mRows[0].normalize();
-       mRows[1].normalize();
-       mRows[2].normalize();
+       mRows[0].Normalize();
+       mRows[1].Normalize();
+       mRows[2].Normalize();
     }
+
+
+
+    //---------------------[ Get operators ]------------------------------
 
 
     //---------------------[ Equality operators ]------------------------------
@@ -243,7 +249,7 @@ private:
      */
     SIMD_INLINE bool operator==(const IMatrix4x4<T>& rhs) const
     {
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < components; i++)
         {
             if (IAbs(mData[i] - rhs.mData[i]) >= MACHINE_EPSILON )
                 return false;
@@ -274,7 +280,7 @@ private:
      */
     SIMD_INLINE operator T*()
     {
-        return (T*) &mRows[0][0];
+        return &mRows[0][0];
     }
 
     /**
@@ -284,14 +290,14 @@ private:
      */
     SIMD_INLINE operator const T*() const
     {
-        return (const T*) &mRows[0][0];
+        return &mRows[0][0];
     }
 
 
     /**
     * Conversion to pointer operator
     */
-    SIMD_INLINE const T* getData() const
+    SIMD_INLINE const T* GetData() const
     {
         return &mRows[0][0];
     }
@@ -299,10 +305,11 @@ private:
    /**
     * Conversion to pointer operator
     */
-    SIMD_INLINE T* getData()
+    SIMD_INLINE T* GetData()
     {
         return &mRows[0][0];
     }
+
 
 
     /// Overloaded operator to read element of the matrix.
@@ -320,14 +327,14 @@ private:
 
 
     /// Return a column
-    SIMD_INLINE IVector4D<T> getColumn(int i) const
+    SIMD_INLINE IVector4D<T> GetColumn(int i) const
     {
         assert(i>= 0 && i<4);
         return IVector4D<T> (mRows[0][i], mRows[1][i], mRows[2][i] , mRows[3][i]);
     }
 
     /// Return a row
-    SIMD_INLINE IVector4D<T> getRow(int i) const
+    SIMD_INLINE IVector4D<T> GetRow(int i) const
     {
         assert(i>= 0 && i<4);
         return mRows[i];
@@ -343,7 +350,7 @@ private:
      */
     SIMD_INLINE IMatrix4x4<T>& operator=(const IMatrix4x4<T>& rhs)
     {
-        std::memcpy(mData, rhs.mData, sizeof(T) * 16);
+        std::memcpy(mData, rhs.mData, sizeof(T) * components);
         return *this;
     }
 
@@ -354,7 +361,7 @@ private:
     template<class FromT>
     SIMD_INLINE IMatrix4x4<T>& operator=(const IMatrix4x4<FromT>& rhs)
     {
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < components; i++)
         {
             mData[i] = static_cast<T>(rhs.mData[i]);
         }
@@ -367,7 +374,7 @@ private:
      */
     SIMD_INLINE IMatrix4x4<T>& operator=(const T* rhs)
     {
-        std::memcpy(mData, rhs, sizeof(T) * 16);
+        std::memcpy(mData, rhs, sizeof(T) * components);
         return *this;
     }
 
@@ -377,7 +384,7 @@ private:
      *
      * @param m Rotation part of matrix
      */
-    SIMD_INLINE void setRotation(const IMatrix3x3<T>& m)
+    SIMD_INLINE void SetRotation(const IMatrix3x3<T>& m)
     {
         for (int i = 0; i < 3; i++)
         {
@@ -393,7 +400,7 @@ private:
      *
      * @param m Position part of matrix
      */
-    SIMD_INLINE void setPosition(const IVector3D<T>& v)
+    SIMD_INLINE void SetPosition(const IVector3D<T>& v)
     {
         mRows[3][0]  = v.x;
         mRows[3][1]  = v.y;
@@ -489,6 +496,66 @@ private:
 
 
 
+     //--------------------[ multiply operators ]--------------------------------
+
+
+    friend SIMD_INLINE IVector2D<T> operator*(const IVector2D<T>& point, const IMatrix4x4<T>& rhs)
+    {
+        T xin, yin;
+        T x, y, w;
+        xin = point.x;
+        yin = point.y;
+
+        x = xin * rhs.mRows[0][0] +
+            yin * rhs.mRows[1][0] +
+                  rhs.mRows[3][0];
+        y = xin * rhs.mRows[0][1] +
+            yin * rhs.mRows[1][1] +
+                  rhs.mRows[3][1];
+        w = xin * rhs.mRows[0][3] +
+            yin * rhs.mRows[1][3] +
+                  rhs.mRows[3][3];
+
+
+        if (w == 1.0f)
+        {
+            return IVector3D<T>((x), (y));
+        }
+        else
+        {
+            return IVector3D<T>((x / w), (y / w));
+        }
+    }
+
+
+
+    SIMD_INLINE IVector2D<T> operator*(const IVector2D<T>& rhs)
+    {
+        T xin, yin;
+        T x, y, w;
+        xin = rhs.x();
+        yin = rhs.y();
+
+
+        x = xin * mRows[0][0] +
+            yin * mRows[0][1] +
+                  mRows[0][3];
+        y = xin * mRows[1][0] +
+            yin * mRows[1][1] +
+                  mRows[1][3];
+        w = xin * mRows[3][0] +
+            yin * mRows[3][1] +
+                  mRows[3][3];
+
+        if (w == 1.0f)
+            return IVector2D<T>((x), (y));
+        else
+            return IVector2D<T>((x / w), (y / w));
+
+    }
+
+
+
     /**
      * Vector multiplication operator.
      *
@@ -501,8 +568,34 @@ private:
      */
     friend SIMD_INLINE IVector3D<T> operator*(const IVector3D<T>& rhs , const IMatrix4x4<T>& lhs)
     {
-    	return lhs * rhs;
+        IVector3D<T>  u =IVector3D<T> (lhs.mRows[0][0]*rhs.x + lhs.mRows[1][0]*rhs.y + lhs.mRows[2][0]*rhs.z + lhs.mRows[3][0],
+                                       lhs.mRows[0][1]*rhs.x + lhs.mRows[1][1]*rhs.y + lhs.mRows[2][1]*rhs.z + lhs.mRows[3][1],
+                                       lhs.mRows[0][2]*rhs.x + lhs.mRows[1][2]*rhs.y + lhs.mRows[2][2]*rhs.z + lhs.mRows[3][2]);
+        float w = lhs.mRows[0][3]*rhs.x +
+                  lhs.mRows[1][3]*rhs.y +
+                  lhs.mRows[2][3]*rhs.z +
+                  lhs.mRows[3][3];
+        return u/w;
     }
+
+
+    /**
+    * Multiplication operator
+    * @param rhs Right hand side argument of binary operator.
+    */
+    SIMD_INLINE IVector3D<T> operator*(const IVector3D<T>& rhs) const
+    {
+        IVector3D<T>  u =IVector3D<T> (mRows[0][0]*rhs.x + mRows[0][1]*rhs.y + mRows[0][2]*rhs.z + mRows[0][3],
+                                       mRows[1][0]*rhs.x + mRows[1][1]*rhs.y + mRows[1][2]*rhs.z + mRows[1][3],
+                                       mRows[2][0]*rhs.x + mRows[2][1]*rhs.y + mRows[2][2]*rhs.z + mRows[2][3]);
+        float w = mRows[3][0]*rhs.x +
+                  mRows[3][1]*rhs.y +
+                  mRows[3][2]*rhs.z +
+                  mRows[3][3];
+        return u/w;
+    }
+
+
 
     /**
      * Vector multiplication operator.
@@ -516,74 +609,47 @@ private:
      */
     friend SIMD_INLINE IVector4D<T> operator*(const IVector4D<T>& rhs , const IMatrix4x4<T>& lhs)
     {
-    	return lhs * rhs;
+
+        IVector4D<T> u = IVector4D<T>(lhs.mRows[0][0]*rhs.x + lhs.mRows[1][0]*rhs.y + lhs.mRows[2][0]*rhs.z + rhs.w*lhs.mRows[3][0],
+                                      lhs.mRows[0][1]*rhs.x + lhs.mRows[1][1]*rhs.y + lhs.mRows[2][1]*rhs.z + rhs.w*lhs.mRows[3][1],
+                                      lhs.mRows[0][2]*rhs.x + lhs.mRows[1][2]*rhs.y + lhs.mRows[2][2]*rhs.z + rhs.w*lhs.mRows[3][2],
+                                      lhs.mRows[0][3]*rhs.x + lhs.mRows[1][3]*rhs.y + lhs.mRows[2][3]*rhs.z + rhs.w*lhs.mRows[3][3]);
+        return u;
     }
 
-    //--------------------[ multiply operators ]--------------------------------
+
     /**
     * Multiplication operator
     * @param rhs Right hand side argument of binary operator.
     */
     SIMD_INLINE IVector4D<T> operator*(const IVector4D<T>& rhs) const
     {
-        IVector4D<T> u =IVector4D<T>(mRows[0][0]*rhs.x + mRows[0][1]*rhs.y + mRows[0][2]*rhs.z + rhs.w*mRows[0][3],
-                                       mRows[1][0]*rhs.x + mRows[1][1]*rhs.y + mRows[1][2]*rhs.z + rhs.w*mRows[1][3],
-                                       mRows[2][0]*rhs.x + mRows[2][1]*rhs.y + mRows[2][2]*rhs.z + rhs.w*mRows[2][3],
-                                       mRows[3][0]*rhs.x + mRows[3][1]*rhs.y + mRows[3][2]*rhs.z + rhs.w*mRows[3][3]);
 
+        IVector4D<T> u = IVector4D<T>(mRows[0][0]*rhs.x + mRows[0][1]*rhs.y + mRows[0][2]*rhs.z + rhs.w*mRows[0][3],
+                                      mRows[1][0]*rhs.x + mRows[1][1]*rhs.y + mRows[1][2]*rhs.z + rhs.w*mRows[1][3],
+                                      mRows[2][0]*rhs.x + mRows[2][1]*rhs.y + mRows[2][2]*rhs.z + rhs.w*mRows[2][3],
+                                      mRows[3][0]*rhs.x + mRows[3][1]*rhs.y + mRows[3][2]*rhs.z + rhs.w*mRows[3][3]);
         return u;
     }
+
+
+
 
 
     /**
     * Multiplication operator
     * @param rhs Right hand side argument of binary operator.
     */
-    SIMD_INLINE ILorentzVector<T> operator*(const ILorentzVector<T>& rhs) const
+    SIMD_INLINE ILorentzVector<T> operator*(const ILorentzVector<T>& rhs ) const
     {
-       ILorentzVector<T> u = ILorentzVector<T>(mRows[0][0]*rhs.x + mRows[0][1]*rhs.y + mRows[0][2]*rhs.z + rhs.t*mRows[0][3],
-                                                 mRows[1][0]*rhs.x + mRows[1][1]*rhs.y + mRows[1][2]*rhs.z + rhs.t*mRows[1][3],
-                                                 mRows[2][0]*rhs.x + mRows[2][1]*rhs.y + mRows[2][2]*rhs.z + rhs.t*mRows[2][3],
-                                                 mRows[3][0]*rhs.x + mRows[3][1]*rhs.y + mRows[3][2]*rhs.z + rhs.t*mRows[3][3]);
-
+        ILorentzVector<T> u = ILorentzVector<T>(mRows[0][0]*rhs.x + mRows[1][0]*rhs.y + mRows[2][0]*rhs.z + rhs.t*mRows[3][0],
+                                                mRows[0][1]*rhs.x + mRows[1][1]*rhs.y + mRows[2][1]*rhs.z + rhs.t*mRows[3][1],
+                                                mRows[0][2]*rhs.x + mRows[1][2]*rhs.y + mRows[2][2]*rhs.z + rhs.t*mRows[3][2],
+                                                mRows[0][3]*rhs.x + mRows[1][3]*rhs.y + mRows[2][3]*rhs.z + rhs.t*mRows[3][3]);
         return u;
     }
 
 
-    /**
-    * Multiplication operator
-    * @param rhs Right hand side argument of binary operator.
-    */
-    SIMD_INLINE IVector3D<T> operator*(const IVector3D<T>& rhs) const
-    {
-
-        IVector3D<T> Point;
-        Point.x = ( rhs.x * mRows[0][0] + rhs.y * mRows[0][1] + rhs.z * mRows[0][2] + mRows[3][0]);
-        Point.y = ( rhs.x * mRows[1][0] + rhs.y * mRows[1][1] + rhs.z * mRows[1][2] + mRows[3][1]);
-        Point.z = ( rhs.x * mRows[2][0] + rhs.y * mRows[2][1] + rhs.z * mRows[2][2] + mRows[3][2]);
-
-        T w = mRows[0][3]*rhs.x +
-              mRows[1][3]*rhs.y +
-              mRows[2][3]*rhs.z +
-              mRows[3][3];
-         return Point / w;
-
-    }
-
-
-//    SIMD_INLINE IVector3D<T> operator*(const IVector3D<T>& rhs) const
-//    {
-//        IVector3D<T> u =IVector3D<T>(rhs.x * mRows[0][0] + rhs.y * mRows[1][0] + rhs.z * mRows[2][0] + mRows[3][0],
-//                                     rhs.x * mRows[0][1] + rhs.y * mRows[1][1] + rhs.z * mRows[2][1] + mRows[3][1],
-//                                     rhs.x * mRows[0][2] + rhs.y * mRows[1][2] + rhs.z * mRows[2][2] + mRows[3][2]);
-
-//        float w = mRows[3][0]*rhs.x +
-//                  mRows[3][1]*rhs.y +
-//                  mRows[3][2]*rhs.z +
-//                  mRows[3][3];
-
-//        return u/w;
-//    }
 
 
     /**
@@ -595,23 +661,22 @@ private:
      * @param rhs The right hand side matrix.
      * @return The matrix equal to the product `lhs` x `rhs`.
      */
-    SIMD_INLINE IMatrix4x4<T> operator*(IMatrix4x4<T> rhs) const
+    SIMD_INLINE IMatrix4x4<T> operator*(const IMatrix4x4<T> &rhs) const
     {
         IMatrix4x4<T> w;
-    	for(int i = 0; i < 4; i++)
-    	{
-    		for (int j = 0; j < 4; j++)
-    		{
-    			T n = 0;
-    			for (int k = 0; k < 4; k++)
-    			{
-    				n += rhs.mRows[i][k] * mRows[k][j];
-    			}
-    			w.mRows[i][j] = n;
-    		}
-    	}
-
-    	return w;
+        for(int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                T n = 0;
+                for (int k = 0; k < 4; k++)
+                {
+                    n += rhs.mRows[i][k] * mRows[k][j];
+                }
+                w.mRows[i][j] = n;
+            }
+        }
+        return w;
     }
 
 
@@ -623,7 +688,7 @@ private:
     * Computes of matrix_3x3
     * @return recombinate of matrix_3x3
     */
-    SIMD_INLINE IMatrix3x3<T> getRotMatrix() const
+    SIMD_INLINE IMatrix3x3<T> GetRotMatrix() const
     {
         IMatrix3x3<T> M;
 
@@ -648,7 +713,7 @@ private:
      * @return Determinant of matrix
      * @note This function does 3 * 4 * 6 mul, 3 * 6 add.
      */
-    SIMD_INLINE T getDeterminant() const
+    SIMD_INLINE T GetDeterminant() const
     {
 
         return  + mRows[3][0] * mRows[2][1] * mRows[1][2] * mRows[0][3] - mRows[2][0] * mRows[3][1] * mRows[1][2] * mRows[0][3]
@@ -677,14 +742,14 @@ private:
      * @note This is a little bit time consuming operation
      * (16 * 6 * 3 mul, 16 * 5 add + det() + mul() functions)
      */
-    SIMD_INLINE IMatrix4x4<T> getInverse() const
+    SIMD_INLINE IMatrix4x4<T> GetInverse() const
     {
 
         // Compute the determinant of the matrix
-        T determinant = getDeterminant();
+        T determinant = GetDeterminant();
 
         // Check if the determinant is equal to zero
-        //assert(IAbs(determinant) > MACHINE_EPSILON);
+        assert(IAbs(determinant) > MACHINE_EPSILON);
 
         IMatrix4x4<T> ret;
 
@@ -751,7 +816,7 @@ private:
     /**
     * Transpose matrix.
     */
-    SIMD_INLINE IMatrix4x4<T> getTranspose() const
+    SIMD_INLINE IMatrix4x4<T> GetTranspose() const
     {
         IMatrix4x4<T> ret;
         for (int i = 0; i < 4; i++)
@@ -766,7 +831,7 @@ private:
 
 
     /// Return the matrix with absolute values
-    SIMD_INLINE IMatrix4x4<T> getAbsoluteMatrix() const
+    SIMD_INLINE IMatrix4x4<T> GetAbsoluteMatrix() const
     {
         return IMatrix4x4<T>(IAbs(mRows[0][0]), IAbs(mRows[0][1]), IAbs(mRows[0][2]), IAbs(mRows[0][3]),
                              IAbs(mRows[1][0]), IAbs(mRows[1][1]), IAbs(mRows[1][2]), IAbs(mRows[1][3]),
@@ -776,24 +841,32 @@ private:
 
 
     /// Return the trace of the matrix
-    SIMD_INLINE T getTrace() const
+    SIMD_INLINE T GetTrace() const
     {
         // Compute and return the trace
         return (mRows[0][0] + mRows[1][1] + mRows[2][2] + mRows[3][3]);
     }
 
 
+
     /**
     * Return the coords of the matrix
     */
-    SIMD_INLINE IVector3D<T> getCoords() const
+    SIMD_INLINE IVector3D<T> GetTranslation() const
     {
-        // Compute and return the coords
-        return IVector3D<T>(mRows[3][0] , mRows[3][1] , mRows[3][2]);
+        return IVector3D<T>(mData[12],mData[13],mData[14]);
     }
 
 
-
+    /**
+    * Off translation of the matrix
+    */
+    SIMD_INLINE void NoTranslation()
+    {
+        mData[12]=0;
+        mData[13]=0;
+        mData[14]=0;
+    }
 
 
 
@@ -804,9 +877,9 @@ private:
      * @param rhs Second Matrix for interpolation
      * @note However values of fact parameter are reasonable only in interval
      * [0.0 , 1.0], you can pass also values outside of this interval and you
-     * can get result (extrapolation?)
+     * can Get result (extrapolation?)
      */
-    SIMD_INLINE IMatrix4x4<T> lerp(T fact, const IMatrix4x4<T>& rhs) const
+    SIMD_INLINE IMatrix4x4<T> Lerp(T fact, const IMatrix4x4<T>& rhs) const
     {
         IMatrix4x4<T> ret = (*this) + (rhs - (*this)) * fact;
         return ret;
@@ -864,23 +937,99 @@ private:
     }
 
 
-    /// Convert in OpenGL Matrix Model
-    SIMD_INLINE IMatrix4x4<T> convertInOpenGLFormat() const
+//    /// Convert in OpenGL Matrix Model
+//    SIMD_INLINE IMatrix4x4<T> ConvertInOpenGLFormat() const
+//    {
+//        IMatrix4x4<T> m(*this);
+//        m.SetPosition(GetTranslation());
+//        m.SetRotation(GetRotMatrix().GetTranspose());
+//        return m;
+//    }
+
+
+    ///---------------------------[ DecomposeMatrix-RecomposeMatrix __ Only Orthogonal Matrix ] -----------------------------------///
+
+    SIMD_INLINE void SetRecomposeMatrixFromComponents( const T *translation, const T *rotation, const T *scale )
     {
-        IMatrix4x4<T> m(*this);
-        m.setPosition(getCoords());
-        m.setRotation(getRotMatrix().getTranspose());
-        return m;
+        RecomposeMatrixFromComponents( translation , rotation , scale , *this );
     }
+
+    SIMD_INLINE void GetDecomposeMatrixToComponents( T *translation, T *rotation,  T *scale )
+    {
+        DecomposeMatrixToComponents( *this , translation , rotation , scale );
+    }
+
+
+    static SIMD_INLINE void DecomposeMatrixToComponents(const T *matrix, T *translation, T *rotation, T *scale)
+    {
+       IMatrix4x4<T> mat = *(IMatrix4x4<T>*)matrix;
+
+       scale[0] = mat.mRows[0].Length();
+       scale[1] = mat.mRows[1].Length();
+       scale[2] = mat.mRows[2].Length();
+
+       IMatrix3x3<T> mat3 = mat.GetRotMatrix();
+       mat3.OrthoNormalize();
+       rotation[0] = /*IRadiansToDegrees*/( IAtan2( mat3[1][2], mat3[2][2]) );
+       rotation[1] = /*IRadiansToDegrees*/( IAtan2(-mat3[0][2], ISqrt(mat3[1][2] * mat3[1][2] + mat3[2][2]* mat3[2][2])) );
+       rotation[2] = /*IRadiansToDegrees*/( IAtan2( mat3[0][1], mat3[0][0]) );
+
+//       IQuaternion<T> Q(mat);
+//       IVector3D<T> AngleEuler = mat.GetRotMatrix().GetEulerAngles();
+//       rotation[0] = /*IRadiansToDegrees*/( AngleEuler[0] );
+//       rotation[1] = /*IRadiansToDegrees*/( AngleEuler[1] );
+//       rotation[2] = /*IRadiansToDegrees*/( AngleEuler[2] );
+
+       IVector3D<T> P = mat.GetTranslation();
+
+       translation[0] = P.x;
+       translation[1] = P.y;
+       translation[2] = P.z;
+    }
+
+    static SIMD_INLINE void RecomposeMatrixFromComponents(const T *translation, const T *rotation, const T *scale, T *matrix)
+    {
+       IMatrix4x4<T>& mat = *(IMatrix4x4<T>*)matrix;
+
+       static const IVector3D<T> directionUnary[3] = { IVector3D<T>(1.f, 0.f, 0.f),
+                                                       IVector3D<T>(0.f, 1.f, 0.f),
+                                                       IVector3D<T>(0.f, 0.f, 1.f) };
+
+       IMatrix4x4<T> rot[3];
+       for (std::size_t i = 0; i < 3;i++)
+       {
+          rot[i] = IMatrix4x4<T>::CreateRotationAxis( directionUnary[i], /*IDegreesToRadians*/(rotation[i]) );
+       }
+
+       mat = rot[0] * rot[1] * rot[2];
+       T validScale[3];
+       for (int i = 0; i < 3; i++)
+       {
+          if (IAbs(scale[i]) < FLT_EPSILON)
+          {
+             validScale[i] = 0.001f;
+          }
+          else
+          {
+             validScale[i] = scale[i];
+          }
+       }
+
+       mat.mRows[0] *= validScale[0];
+       mat.mRows[1] *= validScale[1];
+       mat.mRows[2] *= validScale[2];
+       mat.SetPosition( IVector3D<T>(translation[0], translation[1], translation[2]) );
+
+    }
+
 
 
     ///---------------------------[ Pulgins ] -----------------------------------///
 
 
-
     /// Return a skew-symmetric matrix using a given vector that can be used
-    /// to compute cross product with another vector using matrix multiplication
-    static SIMD_INLINE IMatrix4x4<T> computeSkewSymmetricMatrixForCrossProduct(const IVector4D<T>& vector)
+    /// to compute Cross product with another vector using matrix multiplication
+    static SIMD_INLINE IMatrix4x4<T> ComputeSkewSymmetricMatrixForCrossProduct(const IVector4D<T>& vector)
     {
         return IMatrix4x4<T>(0       , -vector.z,  vector.y,  vector.t,
                              vector.z , 0        , -vector.x,  vector.y,
@@ -891,18 +1040,6 @@ private:
 
 
 
-    /// Return a symmetric matrix using a given vector that can be used
-    /// to compute dot product with another vector using matrix multiplication
-     static SIMD_INLINE IMatrix4x4<T> computeSymmetricMatrix(const IVector4D<T>& vector)
-     {
-         return IMatrix4x4<T>(0       ,  vector.z,  vector.y,  vector.t,
-                              vector.z , 0        ,  vector.x,  vector.y,
-                              vector.y , vector.x , 0        ,  vector.x,
-                              vector.t , vector.y , vector.x , 0);
-     }
-
-
-
 
 
 
@@ -912,17 +1049,40 @@ private:
       * @param scaleFactors Scale .
       * @return Scaling matrix.
       */
-     static SIMD_INLINE IMatrix4x4<T> createScale( const T& _scale )
+     static SIMD_INLINE IMatrix4x4<T> CreateScale( const T& _scale )
      {
-         static IMatrix4x4 res;
+         static IMatrix4x4 res = IMatrix4x4<T>::IDENTITY;
 
-         T _x = T(1. + _scale);
-         T _y = T(1. + _scale);
-         T _z = T(1. + _scale);
+         T _x = T(0. + _scale);
+         T _y = T(0. + _scale);
+         T _z = T(0. + _scale);
 
          res.mRows[0] = IVector4D<T>(_x , 0.f, 0.f, 0.f);
          res.mRows[1] = IVector4D<T>(0.f, _y , 0.f, 0.f);
          res.mRows[2] = IVector4D<T>(0.f, 0.f, _z , 0.f);
+         res.mRows[3] = IVector4D<T>(0.f, 0.f, 0.f, 1.f);
+
+         return res;
+     }
+
+
+
+     /**
+      * Returns a scaling matrix that scales
+      *
+      * @param scaleFactors Scale .
+      * @return Scaling matrix.
+      */
+     static SIMD_INLINE IMatrix4x4<T> CreateScale( T _x , T _y , T _z )
+     {
+         static IMatrix4x4 res;
+
+         T x = T(0. + _x);
+         T y = T(0. + _y);
+         T z = T(0. + _z);
+         res.mRows[0] = IVector4D<T>( x , 0.f, 0.f, 0.f);
+         res.mRows[1] = IVector4D<T>(0.f,  y , 0.f, 0.f);
+         res.mRows[2] = IVector4D<T>(0.f, 0.f,  z , 0.f);
          res.mRows[3] = IVector4D<T>(0.f, 0.f, 0.f, 1.f);
 
          return res;
@@ -935,14 +1095,13 @@ private:
       * @param scaleFactors Scale .
       * @return Scaling matrix.
       */
-     static SIMD_INLINE IMatrix4x4<T> createScale( const IVector3D<T>& _scale )
+     static SIMD_INLINE IMatrix4x4<T> CreateScale( const IVector3D<T>& _scale )
      {
          static IMatrix4x4 res;
 
-         T _x = T(1. + _scale.x);
-         T _y = T(1. + _scale.y);
-         T _z = T(1. + _scale.z);
-
+         T _x = T(0. + _scale.x);
+         T _y = T(0. + _scale.y);
+         T _z = T(0. + _scale.z);
          res.mRows[0] = IVector4D<T>(_x , 0.f, 0.f, 0.f);
          res.mRows[1] = IVector4D<T>(0.f, _y , 0.f, 0.f);
          res.mRows[2] = IVector4D<T>(0.f, 0.f, _z , 0.f);
@@ -950,13 +1109,14 @@ private:
 
          return res;
      }
+
 
 
      /**
       * Returns a scaling around axis matrix that scales
       * @return axis to scaling matrix.
       */
-     static SIMD_INLINE IMatrix4x4<T>  createScaleAroundAxis( const IVector3D<T> n , T _scale )
+     static SIMD_INLINE IMatrix4x4<T>  CreateScaleAroundAxis( const IVector3D<T> n , T _scale )
      {
          static IMatrix4x4<T> M;
          T gamma = (_scale);
@@ -1030,88 +1190,45 @@ private:
          through the operator (int,int):
       */
 
-     static SIMD_INLINE IMatrix4x4<T> createLorentzBoost( const IVector3D<T> &vel )
+     //-------------------------------------------------------------------//
+
+     static SIMD_INLINE IMatrix4x4<T> CreateLorentzBoost( T gamma , const IVector3D<T> vel ,  const T &_LightSpeed = DEFAUL_LIGHT_MAX_VELOCITY_C )
      {
 
+         static IMatrix4x4<T> M = IMatrix4x4<T>::IDENTITY;
 
-        static IMatrix4x4<T> M;
+         const IVector3D<T> n = vel.GetUnit();
+         const T             v = vel.Length();
 
-
-        const IVector3D<T> n = vel.getUnit();
-        const T             v = vel.length();
-
-        const T c = LIGHT_MAX_VELOCITY_C;
-
-         //boost this Lorentz vector
-
-          T gamma = 1.0 * ISqrt( 1.0 - (v*v) / (c*c) );
-
-        // T bgamma = gamma * gamma / (1.0 + gamma);
+          //T bgamma = gamma * gamma / (1.0 + gamma);
           T bgamma = (gamma - 1.0);
 
+         const T c = _LightSpeed;
 
-        M[0][0] = 1.0+((bgamma)*((n.x * n.x)));
-        M[1][0] =     ((bgamma)*((n.y * n.x)));
-        M[2][0] =     ((bgamma)*((n.z * n.x)));
-        M[3][0] = (v*n.x*gamma);
-
-        M[0][1] =     ((bgamma)*((n.x * n.y)));
-        M[1][1] = 1.0+((bgamma)*((n.y * n.y)));
-        M[2][1] =     ((bgamma)*((n.z * n.y)));
-        M[3][1] = (v*n.y*gamma);
-
-        M[0][2] =      ((bgamma)*((n.x * n.z)));
-        M[1][2] =      ((bgamma)*((n.y * n.z)));
-        M[2][2] =  1.0+((bgamma)*((n.z * n.z)));
-        M[3][2] = (v*n.z*gamma);
-
-        M[0][3] =  v*n.x*gamma/(c*c);
-        M[1][3] =  v*n.y*gamma/(c*c);
-        M[2][3] =  v*n.z*gamma/(c*c);
-        M[3][3] =  gamma;
-
-
-         return M;
-    }
-
-
-
-     static SIMD_INLINE IMatrix4x4<T> createLorentzBoost( const IVector3D<T> vel , T gamma )
-     {
-
-         static IMatrix4x4<T> M;
-
-         const IVector3D<T> n = vel.getUnit();
-    	 const T             v = vel.length();
-
-    	 // T bgamma = gamma * gamma / (1.0 + gamma);
-    	 T bgamma = (gamma - 1.0);
-
-    	 const T c = LIGHT_MAX_VELOCITY_C;
-
-    	 M[0][0] = 1.0+((bgamma)*((n.x * n.x)));
+         M[0][0] = 1.0+((bgamma)*((n.x * n.x)));
     	 M[1][0] =     ((bgamma)*((n.y * n.x)));
     	 M[2][0] =     ((bgamma)*((n.z * n.x)));
-    	 M[3][0] = (v*n.x*gamma);
+         M[3][0] = (v*n.x*gamma);
 
     	 M[0][1] =     ((bgamma)*((n.x * n.y)));
     	 M[1][1] = 1.0+((bgamma)*((n.y * n.y)));
     	 M[2][1] =     ((bgamma)*((n.z * n.y)));
-    	 M[3][1] = (v*n.y*gamma);
+         M[3][1] = (v*n.y*gamma);
 
     	 M[0][2] =      ((bgamma)*((n.x * n.z)));
     	 M[1][2] =      ((bgamma)*((n.y * n.z)));
     	 M[2][2] =  1.0+((bgamma)*((n.z * n.z)));
-    	 M[3][2] = (v*n.z*gamma);
+         M[3][2] = (v*n.z*gamma);
 
-    	 M[0][3] =  v*n.x*gamma/(c*c);
-    	 M[1][3] =  v*n.y*gamma/(c*c);
-    	 M[2][3] =  v*n.z*gamma/(c*c);
-    	 M[3][3] =  gamma;  
+         M[0][3] =  v*n.x*gamma/(c*c);
+         M[1][3] =  v*n.y*gamma/(c*c);
+         M[2][3] =  v*n.z*gamma/(c*c);
+         M[3][3] =  gamma;
 
     	 return M;
      }
 
+     //-------------------------------------------------------------------//
 
 
        /// Creates translation matrix
@@ -1120,9 +1237,9 @@ private:
         * @param x X-direction translation
         * @param y Y-direction translation
         * @param z Z-direction translation
-        * @param w for W-coordinate translation (implicitly set to 1)
+        * @param w for W-coordinate translation (implicitly Set to 1)
         */
-       static SIMD_INLINE IMatrix4x4<T> createTranslation(T x, T y, T z, T w = 1)
+       static SIMD_INLINE IMatrix4x4<T> CreateTranslation(T x, T y, T z, T w = 1)
        {
            IMatrix4x4<T> ret;
            ret.mRows[3][0] = x;
@@ -1140,9 +1257,9 @@ private:
         * @param x X-direction translation
         * @param y Y-direction translation
         * @param z Z-direction translation
-        * @param w for W-coordinate translation (implicitly set to 1)
+        * @param w for W-coordinate translation (implicitly Set to 1)
         */
-       static SIMD_INLINE IMatrix4x4<T> createTranslation(const IVector3D<T> & v, T w = 1)
+       static SIMD_INLINE IMatrix4x4<T> CreateTranslation(const IVector3D<T> & v, T w = 1)
        {
            IMatrix4x4<T> ret;
            ret.mRows[3][0] = v.x;
@@ -1160,19 +1277,19 @@ private:
         * @param yDeg Angle (in degrees) of rotation around axis Y.
         * @param zDeg Angle (in degrees) of rotation around axis Z.
         */
-       static SIMD_INLINE IMatrix4x4<T> createRotationAroundAxis(T xDeg, T yDeg, T zDeg)
+       static SIMD_INLINE IMatrix4x4<T> CreateRotationAroundAxis(T xDeg, T yDeg, T zDeg)
        {
            T xRads(/*IDegreesToRadians*/(xDeg));
            T yRads(/*IDegreesToRadians*/(yDeg));
            T zRads(/*IDegreesToRadians*/(zDeg));
 
            IMatrix4x4<T> ma, mb, mc;
-           float ac = ICos(xRads);
-           float as = ISin(xRads);
-           float bc = ICos(yRads);
-           float bs = ISin(yRads);
-           float cc = ICos(zRads);
-           float cs = ISin(zRads);
+           T ac = ICos(xRads);
+           T as = ISin(xRads);
+           T bc = ICos(yRads);
+           T bs = ISin(yRads);
+           T cc = ICos(zRads);
+           T cs = ISin(zRads);
 
            ma.mRows[1][1] = ac;
            ma.mRows[2][1] = as;
@@ -1196,10 +1313,10 @@ private:
 
 
        // Return a 4x4 rotation of axis to matrix
-       static SIMD_INLINE IMatrix4x4<T> createRotationAxis(const IVector3D<T>& axis, T angle)
+       static SIMD_INLINE IMatrix4x4<T> CreateRotationAxis(const IVector3D<T>& axis, T angle)
        {
 
-           //angle = angle / 180.0f * (float)M_PI;
+           //angle = angle / 180.0f * (T)M_PI;
 
            T cosA = ICos(angle);
            T sinA = ISin(angle);
@@ -1225,12 +1342,14 @@ private:
            rotationMatrix.mRows[2][3] = 0.f;
            rotationMatrix.mRows[3][3] = 1.f;
 
+          // rotationMatrix.OrthoNormalize();
+
            return rotationMatrix;
        }
 
 
         // Return a 4x4 rotation of quaternion to matrix
-       static  SIMD_INLINE IMatrix4x4<T>& createRotation(const IQuaternion<T>& Quat)
+       static  SIMD_INLINE IMatrix4x4<T>& CreateRotation(const IQuaternion<T>& Quat)
        {
            static IMatrix4x4<T> M;
 
@@ -1280,10 +1399,10 @@ private:
         * @param upDir Direction of up vector
         * @return Resulting view matrix that looks from and at specific position.
         */
-       static SIMD_INLINE IMatrix4x4<T> createLookAt(const IVector3D<T>& eyePos, const IVector3D<T>& centerPos, const IVector3D<T>& upDir)
+       static SIMD_INLINE IMatrix4x4<T> CreateLookAt(const IVector3D<T>& eyePos, const IVector3D<T>& centerPos, const IVector3D<T>& upDir)
        {
 
-            IVector3D<T> forward = centerPos - eyePos;
+           IVector3D<T> forward = centerPos - eyePos;
            if (IAbs(forward.x) < MACHINE_EPSILON &&
                IAbs(forward.y) < MACHINE_EPSILON &&
                IAbs(forward.z) < MACHINE_EPSILON)
@@ -1291,12 +1410,12 @@ private:
                return IMatrix4x4<T>::IDENTITY;
            }
 
-           forward.normalize();
-           IVector3D<T> side = cross(forward, upDir).normalized();
-           IVector3D<T> upVector = cross(side, forward);
+           forward.Normalize();
+           IVector3D<T> side = Cross(forward, upDir).Normalized();
+           IVector3D<T> upVector = Cross(side, forward);
 
            IMatrix4x4<T> m;
-           m.setToIdentity();
+           m.SetToIdentity();
 
            m.mRows[0][0] = side.x;
            m.mRows[1][0] = side.y;
@@ -1315,7 +1434,7 @@ private:
            m.mRows[2][3] = 0.0f;
            m.mRows[3][3] = 1.0f;
 
-           return m * IMatrix4x4<T>::createTranslation(-eyePos);
+           return m * IMatrix4x4<T>::CreateTranslation(-eyePos);
 
        }
 
@@ -1328,7 +1447,7 @@ private:
            and \a farPlane clipping planes.
            \sa frustum(), perspective()
        */
-       static SIMD_INLINE IMatrix4x4<T> createOrtho(T left, T right, T bottom, T top, T nearPlane, T farPlane)
+       static SIMD_INLINE IMatrix4x4<T> CreateOrtho(T left, T right, T bottom, T top, T nearPlane, T farPlane)
        {
 
          // Bail out if the projection volume is zero-sized.
@@ -1356,7 +1475,7 @@ private:
 //          }
 //      #endif
           IMatrix4x4 m;
-          m.setToIdentity();
+          m.SetToIdentity();
 
           m.mRows[0][0] = 2.0f / width;
           m.mRows[1][0] = 0.0f;
@@ -1392,7 +1511,7 @@ private:
            and \a farPlane clipping planes.
            \sa ortho(), perspective()
        */
-       static SIMD_INLINE IMatrix4x4<T> createFrustum(T left, T right, T bottom, T top, T nearPlane, T farPlane)
+       static SIMD_INLINE IMatrix4x4<T> CreateFrustum(T left, T right, T bottom, T top, T nearPlane, T farPlane)
        {
          // Bail out if the projection volume is zero-sized.
          if (left == right || bottom == top || nearPlane == farPlane)
@@ -1400,7 +1519,7 @@ private:
 
          // Construct the projection.
          IMatrix4x4<T> m;
-         m.setToIdentity();
+         m.SetToIdentity();
          T width = right - left;
          T invheight = top - bottom;
          T clip = farPlane - nearPlane;
@@ -1435,7 +1554,7 @@ private:
            planes which are the distances from the viewer to the corresponding planes.
            \sa ortho(), frustum()
        */
-       static SIMD_INLINE IMatrix4x4<T> createPerspective(T verticalAngle, T aspectRatio, T nearPlane, T farPlane)
+       static SIMD_INLINE IMatrix4x4<T> CreatePerspective(T verticalAngle, T aspectRatio, T nearPlane, T farPlane)
        {
            // Bail out if the projection volume is zero-sized.
            if (nearPlane == farPlane || aspectRatio == 0.0f) return IMatrix4x4<T>::IDENTITY;
@@ -1479,7 +1598,7 @@ private:
 
        /*!
            Multiplies this matrix by another that performs the scale and bias
-           transformation used by OpenGL to transform from normalized device
+           transformation used by OpenGL to transform from Normalized device
            coordinates (NDC) to viewport (window) coordinates. That is it maps
            points from the cube ranging over [-1, 1] in each dimension to the
            viewport with it's near-lower-left corner at (\a left, \a bottom, \a nearPlane)
@@ -1487,7 +1606,7 @@ private:
            This matches the transform used by the fixed function OpenGL viewport
            transform controlled by the functions glViewport() and glDepthRange().
         */
-       static SIMD_INLINE IMatrix4x4<T> createViewport(T left, T bottom, T width, T height, T nearPlane, T farPlane)
+       static SIMD_INLINE IMatrix4x4<T> CreateViewport(T left, T bottom, T width, T height, T nearPlane, T farPlane)
        {
            const T w2 = width / 2.0f;
            const T h2 = height / 2.0f;
@@ -1543,7 +1662,7 @@ private:
     /**
     * Gets string representation.
     */
-    std::string toString() const
+    std::string ToString() const
     {
         std::ostringstream oss;
         oss << *this;
@@ -1582,9 +1701,9 @@ template<class T> const IMatrix4x4<T> IMatrix4x4<T>::ZERO = IMatrix4x4<T>(0.0, 0
 template<class T>  SIMD_INLINE IMatrix4x4<T> operator ^ (const IVector4D<T> lhs , const IVector4D<T> rhs )
 {
     return IMatrix4x4<T>( lhs.x * rhs.x , lhs.x * rhs.y, lhs.x * rhs.z, lhs.x * rhs.w ,
-			               lhs.y * rhs.x , lhs.y * rhs.y, lhs.y * rhs.z, lhs.y * rhs.w ,
-						   lhs.z * rhs.x , lhs.z * rhs.y, lhs.z * rhs.z, lhs.z * rhs.w ,
-						   lhs.w * rhs.x , lhs.w * rhs.y, lhs.w * rhs.z, lhs.w * rhs.w);
+                          lhs.y * rhs.x , lhs.y * rhs.y, lhs.y * rhs.z, lhs.y * rhs.w ,
+                          lhs.z * rhs.x , lhs.z * rhs.y, lhs.z * rhs.z, lhs.z * rhs.w ,
+                          lhs.w * rhs.x , lhs.w * rhs.y, lhs.w * rhs.z, lhs.w * rhs.w);
 }
 
 template<class T>  SIMD_INLINE IMatrix4x4<T> operator ^ (const ILorentzVector<T> lhs , const ILorentzVector<T> rhs )
@@ -1600,12 +1719,14 @@ template<class T>  SIMD_INLINE IMatrix4x4<T> operator ^ (const ILorentzVector<T>
 //--------------------------------------
 // Typedef shortcuts for Matrix4x4
 //-------------------------------------
-/// Matrix 4x4 of floats
-typedef IMatrix4x4<float> IMatrix4x4f;
-/// Matrix 4x4 of doubles
-typedef IMatrix4x4<double> IMatrix4x4d;
-/// Matrix 4x4 of int
-typedef IMatrix4x4<int> IMatrix4x4i;
+
+using IMatrix4x4r    = IMatrix4x4<Real>;
+using IMatrix4x4f    = IMatrix4x4<float>;
+using IMatrix4x4d    = IMatrix4x4<double>;
+using IMatrix4x4i    = IMatrix4x4<std::int32_t>;
+using IMatrix4x4ui   = IMatrix4x4<std::uint32_t>;
+using IMatrix4x4b    = IMatrix4x4<std::int8_t>;
+using IMatrix4x4ub   = IMatrix4x4<std::uint8_t>;
 
 
 

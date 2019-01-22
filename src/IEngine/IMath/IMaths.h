@@ -31,7 +31,7 @@
 #ifndef MATHS_H
 #define MATHS_H
 
-#include "iFunc.h"
+#include "IFunc.h"
 #include "IVector2D.h"
 #include "IVector3D.h"
 #include "IVector4D.h"
@@ -40,14 +40,23 @@
 #include "IMatrix3x3.h"
 #include "IMatrix4x4.h"
 #include "IQuaternion.h"
-#include "IOctonion.hpp"
+#include "IOctonion.h"
 #include "IComplex.h"
 #include "IRay.h"
 #include "ITransform.h"
+#include "IAxisAlignedBox3D.h"
+
+#include "ISpherical.h"
 
 #include "ILine3D.h"
 #include "ILineSegment3D.h"
 #include "IPlane.h"
+
+
+#include "IVector.h"
+#include "IScalarType.h"
+#include "IAlgebra.h"
+
 
 #include <limits>
 

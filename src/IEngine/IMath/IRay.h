@@ -1,4 +1,4 @@
- /********************************************************************************
+/********************************************************************************
  *
  * IRay.h
  *
@@ -38,90 +38,99 @@ namespace IMath
 
 template<class T> class IRay
 {
-    public:
+public:
 
-        // -------------------- Attributes -------------------- //
+    // -------------------- Attributes -------------------- //
 
-        /// First point of the ray (origin)
-        IVector3D<T> point1;
+    /// First point of the ray (origin)
+    IVector3D<T> Origin;
 
-        /// Second point of the ray
-        IVector3D<T> point2;
+    /// Second point of the ray
+    IVector3D<T> Direction;
 
-        /// Maximum fraction value
-        T maxFraction;
-
-
-        // -------------------- Methods -------------------- //
+    /// Maximum fraction value
+    T maxFraction;
 
 
-        /// Constructor default
-        SIMD_INLINE IRay(){}
+    // -------------------- Methods -------------------- //
 
-        /// Constructor with arguments
-        SIMD_INLINE IRay(const IVector3D<T>& p1, const IVector3D<T>& p2, T maxFrac = T(1.0))
-            : point1(p1), point2(p2), maxFraction(maxFrac)
+
+    /// Constructor default
+    SIMD_INLINE IRay(){}
+
+    /// Constructor with arguments
+    SIMD_INLINE IRay(const IVector3D<T>& _origin, const IVector3D<T>& _direction, T maxFrac = T(1.0))
+        : Origin(_origin),
+          Direction(_direction),
+          maxFraction(maxFrac)
+    {
+    }
+
+    /// Copy-constructor
+    SIMD_INLINE IRay(const IRay<T>& ray)
+        : Origin(ray.Origin),
+          Direction(ray.Direction),
+          maxFraction(ray.maxFraction)
+    {
+
+    }
+
+
+    /// Overloaded assignment operator
+    SIMD_INLINE IRay& operator=(const IRay& ray)
+    {
+        if (&ray != this)
         {
+            Origin = ray.Origin;
+            Direction = ray.Direction;
+            maxFraction = ray.maxFraction;
         }
-
-        /// Copy-constructor
-        SIMD_INLINE IRay(const IRay<T>& ray)
-            : point1(ray.point1), point2(ray.point2), maxFraction(ray.maxFraction)
-        {
-
-        }
-
-
-        /// Overloaded assignment operator
-        SIMD_INLINE IRay& operator=(const IRay& ray)
-        {
-            if (&ray != this)
-            {
-                point1 = ray.point1;
-                point2 = ray.point2;
-                maxFraction = ray.maxFraction;
-            }
-            return *this;
-        }
+        return *this;
+    }
 
 
 
-        //-------------[ output operator ]------------------------
-        /**
+    //-------------[ output operator ]------------------------
+    /**
         * Output to stream operator
         * @param lhs Left hand side argument of operator (commonly ostream instance).
         * @param rhs Right hand side argument of operator.
         * @return Left hand side argument - the ostream object passed to operator.
         */
-        friend std::ostream& operator<<(std::ostream& lhs, const IRay<T>& rhs)
-        {
-            lhs << "point1:" << rhs.point1 << " , " <<  "point2:" << rhs.point2 << " , " << "maxFriction:" << rhs.maxFraction;
-            return lhs;
-        }
+    friend std::ostream& operator<<(std::ostream& lhs, const IRay<T>& rhs)
+    {
+        lhs << "Origin :" << rhs.Origin << " , " <<  "Direction :" << rhs.Direction << " , " << "maxFriction:" << rhs.maxFraction;
+        return lhs;
+    }
 
-        /**
+    /**
         * Gets string representation.
         */
-        std::string toString() const
-        {
-            std::ostringstream oss;
-            oss << *this;
-            return oss.str();
-        }
+    std::string ToString() const
+    {
+        std::ostringstream oss;
+        oss << *this;
+        return oss.str();
+    }
 
 };
 
 
 
+
 //--------------------------------------
-// Typedef shortcuts for Ray
+// Typedef shortcuts for IRay
 //-------------------------------------
-/// Three dimensional Ray of floats
-typedef IRay<float> IRayf;
-/// Three dimensional Ray of doubles
-typedef IRay<double> IRayd;
-/// Three dimensional Ray of ints
-typedef IRay<int> IRayi;
+
+using IRayr    = IRay<Real>;
+using IRayf    = IRay<float>;
+using IRayd    = IRay<double>;
+using IRayi    = IRay<std::int32_t>;
+using IRayui   = IRay<std::uint32_t>;
+using IRayb    = IRay<std::int8_t>;
+using IRayub   = IRay<std::uint8_t>;
+
+
 
 } /* namespace */
 

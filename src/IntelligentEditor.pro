@@ -20,6 +20,8 @@ QMAKE_CXXFLAGS += -std=c++11
 #LIBS += -lGL -lGLU -lglut
 #LIBS += -lX11
 
+OBJECTS_DIR = _build
+DESTDIR  = ../bin
 
 
 #Linux

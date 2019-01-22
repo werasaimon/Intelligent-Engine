@@ -61,32 +61,67 @@
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
 #include <QWheelEvent>
+#include <QLayout>
+#include <QLayoutItem>
 
 #include <QFile>
 #include <QDebug>
 #include <QTextStream>
 
 
-#include "ICreatorScene/IScene.h"
-#include "ICreatorScene/ICreatorScene.h"
+#include "ISceneEditor/ISceneCompare.h"
+#include "ISceneEditor/ISceneEditor.h"
 
+#include <iostream>
+using namespace  std;
 
 class IEditGLWidget : public QOpenGLWidget , protected QOpenGLFunctions
 {
     Q_OBJECT
 
+private:
+
+   /// Base Timer Update
+   QBasicTimer  timer;
+
+   /// Scene Engine Editor
+   ISceneEditor* mScene;
+
+private:
+
+    //---- Mouse Value ----//
+    float mouseOldX;
+    float mouseOldY;
+
+    float mouseX;
+    float mouseY;
+
+    int  mMouseButton;
+    //---------------------//
+
+    IVivwer *mViewScene;
+
+    IuGizmo::IGizmo::LOCATION mGizmoLocationMode;
+    IuGizmo::IGizmo* mGizmoManipulator;
+
+    IuGizmo::IGizmo* mGizmoMove;
+    IuGizmo::IGizmo* mGizmoRotate;
+    IuGizmo::IGizmo* mGizmoScale;
+
 public:
-    explicit IEditGLWidget(QWidget *parent = 0);
+    explicit IEditGLWidget(QWidget *parent = nullptr);
             ~IEditGLWidget();
+
+    ISceneEditor *scene();
 
 //protected:
 public:
 
+    QWidget *widget_interface;
+
     void initializeGL() Q_DECL_OVERRIDE;
     void resizeGL(int w, int h) Q_DECL_OVERRIDE;
     void paintGL() Q_DECL_OVERRIDE;
-
-
 
 
     void mousePressEvent(QMouseEvent *e) Q_DECL_OVERRIDE;
@@ -99,42 +134,137 @@ public:
     void keyPressEvent( QKeyEvent *keyEvent ) Q_DECL_OVERRIDE;
     void keyReleaseEvent( QKeyEvent *keyEvent ) Q_DECL_OVERRIDE;
 
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) Q_DECL_OVERRIDE;
 
-    IScene *scene();
 
-    void setScene( IScene *scene );
+
 
 private:
 
-    QBasicTimer  timer;
 
-    /// scene open GL
-    IScene* mScene;
+    void RemoveLayout(QLayout* layout)
+    {
+        QLayoutItem* child;
+        while(layout->count()!=0)
+        {
+            child = layout->takeAt(0);
+            if(child->layout() != 0)
+            {
+                RemoveLayout(child->layout());
+            }
+            else if(child->widget() != 0)
+            {
+                delete child->widget();
+            }
+
+            delete child;
+            child = nullptr;
+        }
+    }
+
+
+    void ClearLayout(QLayout *layout)
+    {
+        RemoveLayout(layout);
+        // THIS IS THE SOLUTION!
+        // Delete all existing widgets, if any.
+        if ( layout != NULL )
+        {
+            QLayoutItem* item;
+            while ( (item=layout->takeAt(0)) != NULL )
+            {
+                if(item->widget())
+                {
+                    item->widget()->deleteLater();
+                    delete item->widget();
+                }
+
+                if(item->layout())
+                {
+                    ClearLayout(item->layout());
+                }
+
+                delete item;
+                item = nullptr;
+            }
+
+            delete layout;
+            layout = nullptr;
+        }
+    }
 
 
 
-private slots:
+public slots:
+
 
 
     void Move()
     {
-      cout<< "Move" <<endl;
-      static_cast<ICreatorScene*>(mScene)->GizmoContext._TransformMode_ = IGeometry::Context::Move;
+        //static_cast<ISceneEditor*>(mScene)->CheckMove();
+
+        mGizmoManipulator = mGizmoMove;
+        mGizmoManipulator->SetLocation( mGizmoLocationMode );
+        mGizmoManipulator->SetEditMatrix( static_cast<ISceneEditor*>(mScene)->getGizmo_transform_matrix() );
+        mGizmoManipulator->SetDisplayScale( 2.f );
+        mGizmoManipulator->SetScreenDimension( mViewScene->mWidth, mViewScene->mHeight );
+        static_cast<ISceneEditor*>(mScene)->setGizmoManipulator(mGizmoManipulator);
     }
 
     void Scale()
     {
-      cout<< "Scale" <<endl;
-      static_cast<ICreatorScene*>(mScene)->GizmoContext._TransformMode_ = IGeometry::Context::Scale;
+        //static_cast<ISceneEditor*>(mScene)->CheckScale();
+
+        std::cout << "Scale" << std::endl;
+
+        mGizmoManipulator = mGizmoScale;
+        mGizmoManipulator->SetLocation( mGizmoLocationMode );
+        mGizmoManipulator->SetEditMatrix( static_cast<ISceneEditor*>(mScene)->getGizmo_transform_matrix() );
+        mGizmoManipulator->SetDisplayScale( 2.f );
+        mGizmoManipulator->SetScreenDimension( mViewScene->mWidth, mViewScene->mHeight );
+        static_cast<ISceneEditor*>(mScene)->setGizmoManipulator(mGizmoManipulator);
     }
 
     void Rotate()
     {
-      cout<< "Rotate" <<endl;
-      static_cast<ICreatorScene*>(mScene)->GizmoContext._TransformMode_ = IGeometry::Context::Rotate;
+        //static_cast<ISceneEditor*>(mScene)->CheckRotate();
+
+        mGizmoManipulator = mGizmoRotate;
+        mGizmoManipulator->SetLocation( mGizmoLocationMode );
+        mGizmoManipulator->SetEditMatrix( static_cast<ISceneEditor*>(mScene)->getGizmo_transform_matrix() );
+        mGizmoManipulator->SetDisplayScale( 2.f );
+        mGizmoManipulator->SetScreenDimension( mViewScene->mWidth, mViewScene->mHeight );
+        static_cast<ISceneEditor*>(mScene)->setGizmoManipulator(mGizmoManipulator);
     }
 
+
+
+
+    void CheckLocal()
+    {
+       // static_cast<ISceneEditor*>(mScene)->CheckLocal();
+
+        mGizmoManipulator->SetDisplayScale( 2.f );
+        mGizmoManipulator->SetLocation( mGizmoLocationMode = IuGizmo::IGizmo::LOCATE_LOCAL );
+
+    }
+
+    void CheckWorld()
+    {
+        //static_cast<ISceneEditor*>(mScene)->CheckWorld();
+
+        mGizmoManipulator->SetDisplayScale( 2.f );
+        mGizmoManipulator->SetLocation( mGizmoLocationMode = IuGizmo::IGizmo::LOCATE_WORLD );
+    }
+
+
+    void DeleteComponentSelected()
+    {
+        mScene->RemoveSelectedComponent();
+    }
+
+
+    IVivwer *getViewScene() const;
 
 };
 

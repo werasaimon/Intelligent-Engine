@@ -66,10 +66,62 @@
 float mouse_x = 0;
 float mouse_y = 0;
 
+
+
 IEditGLWidget::IEditGLWidget(QWidget *parent)
-  : QOpenGLWidget(parent)
+: QOpenGLWidget(parent)
 {
 
+        //--------------------------------------------------//
+
+        float  width  = 600;
+        float  height = 400;
+
+        float aspect = width / height;
+        float zNear  = 1.0;
+        float zFar   = 1024;
+        float fov    = 30;
+
+
+        IEngine::IQCamera *iqCamera = new IEngine::IQCamera;
+        mViewScene = new IVivwer( new IEngineComponent::IComponentCamera(iqCamera , 0) );
+
+        mViewScene->ProjectionPerspectiv( fov , aspect , zNear , zFar );
+
+        mViewScene->mEye    =  IEngine::IVector3(0,1,-10);
+        mViewScene->mCenter =  IEngine::IVector3(0,0,0);
+        mViewScene->mUp     =  IEngine::IVector3(0,1,0);
+
+        mViewScene->MoveLegth_FocusCamera = 10;
+
+        mViewScene->mWidth  = width;
+        mViewScene->mHeight = height;
+
+        //--------------------------------------------------//
+
+        mGizmoMove = IuGizmo::CreateMoveGizmo();
+        mGizmoRotate = IuGizmo::CreateRotateGizmo();
+        mGizmoScale = IuGizmo::CreateScaleGizmo();
+
+        mGizmoManipulator = mGizmoMove;
+        mGizmoLocationMode = IuGizmo::IGizmo::LOCATE_WORLD;
+        mGizmoManipulator->SetLocation( mGizmoLocationMode );
+        mGizmoManipulator->SetEditMatrix( IEngine::IMatrix4x4::IDENTITY );
+        mGizmoManipulator->SetScreenDimension( width , height );
+        mGizmoManipulator->SetDisplayScale( 2.f );
+
+        //--------------------------------------------------//
+
+
+        /// initilisation scene
+        mScene = new ISceneEditor(mViewScene);
+        mScene->initialization();
+
+        mScene->setGizmoManipulator(mGizmoManipulator);
+        //mScene->initialization(mViewScene);
+
+        // Use QBasicTimer because its faster than QTimer
+        timer.start( 20 , this);
 
 }
 
@@ -84,10 +136,23 @@ IEditGLWidget::~IEditGLWidget()
 }
 
 
+//---------------------------------------------------//
+
+IVivwer *IEditGLWidget::getViewScene() const
+{
+    return mViewScene;
+}
+
+ISceneEditor *IEditGLWidget::scene()
+{
+    return mScene;
+}
+
+//---------------------------------------------------//
+
 
 void IEditGLWidget::initializeGL()
 {
-
 
 //#ifdef __ANDROID__
 //#elif defined(WIN32) || defined(__linux__)
@@ -103,17 +168,10 @@ void IEditGLWidget::initializeGL()
 
     initializeOpenGLFunctions();
 
-    glClearColor(0, 0, 0, 1);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    /// initilisation scene
-    mScene = new ICreatorScene;
-    mScene->initialization();
-
-
-    // Use QBasicTimer because its faster than QTimer
-    timer.start( 20 , this);
 
 }
 
@@ -123,70 +181,69 @@ void IEditGLWidget::initializeGL()
 
 void IEditGLWidget::resizeGL( int w , int h )
 {
-
    mScene->resize( w , h );
 
-
-    /**
-    glViewport(0, 0, w, h);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(-1, 1, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-
-    /**
-    mScene->resize( w , h );
-
-    /**
-    glShadeModel(GL_SMOOTH);				// Enable Smooth Shading
-    glClearColor(0.0f, 0.0f, 0.0f, 0.5f);		// Black Background
-    glClearDepth(1.0f);					// Depth Buffer Setup
-    glEnable(GL_DEPTH_TEST);				// Enables Depth Testing
-    glDepthFunc(GL_LEQUAL);				// The Type Of Depth Testing To Do
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculations
+  //-------------------------------------------------------------//
 
 
-    /**
-    glShadeModel(GL_SMOOTH);
-    glViewport(0, 0, w , h);
+   float width = w;
+   float height = h;
+   mViewScene->mWidth  = width;
+   mViewScene->mHeight = height;
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+   float aspect = width / height;
+   float zNear  = 0.5;
+   float zFar   = 1024;
+   float fov    = 30;
 
-    //  glOrtho( 0.0 , world_size , 0.0 , world_size , -10.0 , 10.0);
-    gluPerspective(45.0f, (GLfloat) w / (GLfloat) h , 0.01, 1000.0f);
+   mViewScene->ProjectionPerspectiv( fov , aspect , zNear , zFar );
 
+   if (mGizmoManipulator)
+   {
+       mGizmoManipulator->SetScreenDimension( mViewScene->mWidth,
+                                              mViewScene->mHeight );
+   }
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    /**/
-
+   //-------------------------------------------------------------//
 }
 
 
 void IEditGLWidget::paintGL()
 {
-    mScene->render(1.f/60.f);
+   mScene->render(1.f/60.f);
 }
 
 
 void IEditGLWidget::timerEvent(QTimerEvent *e)
 {
-    mScene->update();
     update();
+
+    mViewScene->Update();
+    mScene->update();
+
+    //-------------------------------------------------------------------------------------------//
+    if (mGizmoManipulator)
+    {
+        mGizmoManipulator->SetCameraMatrix(mViewScene->mCamera->GetCamera()->ViewMatrix() ,
+                                           mViewScene->mCamera->GetCamera()->ProjectionMatrix() );
+    }
+    //-------------------------------------------------------------------------------------------//
 }
 
 
 void IEditGLWidget::keyPressEvent(QKeyEvent *keyEvent)
 {
-   mScene->specialKeyboardDown( keyEvent->key() );
    mScene->keyboard( keyEvent->key() );
+   mScene->SaveKeyPressed( keyEvent->key() );
+   keyEvent->accept();
 
 }
 
 void IEditGLWidget::keyReleaseEvent(QKeyEvent *keyEvent)
 {
-   mScene->specialKeyboardUp(  keyEvent->key() );
+
+   mScene->realaseKeyboard(keyEvent->key());
+   mScene->SaveKeyReleased( keyEvent->key() );
    keyEvent->accept();
 }
 
@@ -196,6 +253,13 @@ void IEditGLWidget::wheelEvent(QWheelEvent *event)
 {
    mScene->mouseWheel(event->delta());
    event->accept();
+
+   //----------------------------------------//
+   float delta = event->delta();
+   mViewScene->MoveLegth_FocusCamera += (delta * 0.02f);
+   mViewScene->MoveLegth_FocusCamera = IMath::IClamp(mViewScene->MoveLegth_FocusCamera,5.f,1024.f);
+   //----------------------------------------//
+
 }
 
 
@@ -203,28 +267,70 @@ void IEditGLWidget::wheelEvent(QWheelEvent *event)
 void IEditGLWidget::mouseMoveEvent(QMouseEvent *e)
 {
   mouse_x = e->pos().x();
-  mouse_x = e->pos().y();
+  mouse_y = e->pos().y();
 
-  mScene->mouseMove( e->pos().x() , e->pos().y() , e->button() );
+  mouseX = mouse_x;
+  mouseY = mouse_y;
 
+  if( mMouseButton == Qt::MouseButton::MidButton )
+  {
+      float speed_mouse_x = mouseX - mouseOldX;
+      float speed_mouse_y = mouseY - mouseOldY;
+
+      mViewScene->AngleYawCamera  -= speed_mouse_x * 0.005f;
+      mViewScene->AngleRollCamera += speed_mouse_y * 0.005f;
+
+      mouseOldX = mouse_x;
+      mouseOldY = mouse_y;
+  }
+  else
+  {
+     mScene->mouseMove( e->pos().x() , e->pos().y() , e->button() );
+
+     if(  mMouseButton == Qt::MouseButton::LeftButton )
+     {
+         if (mGizmoManipulator)
+         {
+             mGizmoManipulator->OnMouseMove( mouseX, mouseY );
+         }
+     }
+  }
+
+
+    //----------------------------------------------------------//
 }
+
 
 void IEditGLWidget::mousePressEvent(QMouseEvent *e)
 {
 
   mouse_x = e->pos().x();
-  mouse_x = e->pos().y();
+  mouse_y = e->pos().y();
 
-  mScene->mousePress( e->pos().x() , e->pos().y() , e->button() );
+  mouseX = mouseOldX = mouse_x;
+  mouseY = mouseOldY = mouse_y;
+  mMouseButton = e->button();
+
+// //---------------------------//
+//  mouseX = mouseOldX = mouse_x;
+//  mouseY = mouseOldY = mouse_y;
+//  mMouseButton = e->button();
+// //---------------------------//
 
    /**/
-   if( e->button() == Qt::RightButton )
+   if( e->button() == Qt::MouseButton::RightButton )
    {
        QMenu menu(this);
        menu.addSeparator();
        menu.addAction( "Move"   , this  , SLOT(Move())   );
        menu.addAction( "Scale"  ,  this , SLOT(Scale())  );
        menu.addAction( "Rotate" ,  this , SLOT(Rotate()) );
+       menu.addSection("----------------------------");
+       menu.addAction( "Delete" ,  this , SLOT(DeleteComponentSelected()) );
+
+
+
+
        menu.exec(e->globalPos());
 
        //e->pos().setX(mouse_x);
@@ -233,32 +339,78 @@ void IEditGLWidget::mousePressEvent(QMouseEvent *e)
    }
    else
    {
+       if( mGizmoManipulator &&  e->button() == Qt::MouseButton::LeftButton )
+       {
+           mGizmoManipulator->OnMouseDown( mouseX, mouseY );
+       }
+
        mScene->mousePress( e->pos().x() , e->pos().y() - 4.0 , e->button() );
+
    }
    /**/
 }
 
 void IEditGLWidget::mouseReleaseEvent(QMouseEvent *e)
 {
-   mScene->mouseReleasePress( e->pos().x() , e->pos().y() , e->button() );
+    mouse_x = e->pos().x();
+    mouse_y = e->pos().y();
+
+    mouseX = mouseOldX = mouse_x;
+    mouseY = mouseOldY = mouse_y;
+    mMouseButton = e->button();
+
+    if(  mMouseButton == Qt::MouseButton::LeftButton )
+    {
+        if (mGizmoManipulator)
+        {
+            mGizmoManipulator->OnMouseUp( mouseX, mouseY );
+            mGizmoManipulator->InitEditMatrix();
+        }
+    }
+
+
+
+   if( e->button() == Qt::RightButton )
+   {
+        //....
+   }
+   else
+   {
+       mScene->mouseReleasePress( e->pos().x() , e->pos().y() , e->button() );
+   }
+
 }
 
 
 void IEditGLWidget::closeEvent(QCloseEvent *event)
 {
    mScene->destroy();
+
+//   if(mGizmoMove)
+//   {
+//       delete mGizmoMove;
+//       mGizmoMove = nullptr;
+//   }
+
+//   if(mGizmoRotate)
+//   {
+//       delete mGizmoRotate;
+//       mGizmoRotate = nullptr;
+//   }
+
+//   if(mGizmoScale)
+//   {
+//       delete mGizmoScale;
+//       mGizmoScale = nullptr;
+//   }
+
    event->accept();
 }
 
-IScene *IEditGLWidget::scene()
-{
-    return mScene;
-}
 
-void IEditGLWidget::setScene(IScene *scene)
-{
-    mScene = scene;
-}
+
+
+
 
 
 

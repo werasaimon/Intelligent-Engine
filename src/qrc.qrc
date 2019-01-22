@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>QMLSource/main_CreatePrimitive.qml</file>
+        <file>QMLSource/create_primitive/CreatePrimitiveCuboid.qml</file>
+        <file>QMLSource/create_primitive/CreatePrimitiveEllipsoid.qml</file>
+        <file>QMLSource/main.qml</file>
+    </qresource>
+</RCC>
